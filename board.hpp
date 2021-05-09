@@ -8,8 +8,8 @@
 
 namespace sudoku {
 
-template<typename T>
-void dump_bits(const T bits, const int line_len) {
+template<size_t len>
+void dump_bits(const std::bitset<len> bits, const int line_len) {
 	for (size_t i = 0; i < bits.size(); i++) {
 		std::cout << bits[i];
 		if (!((i+1)%line_len)) {
@@ -17,6 +17,17 @@ void dump_bits(const T bits, const int line_len) {
 		}
 	}
 	std::cout << std::endl;
+}
+
+template<size_t len>
+size_t bitset_count(const std::bitset<len> bits) {
+	size_t count = 0;
+	for (size_t i = 0; i < bits.size(); i++) {
+		if (bits[i]) {
+			count++;
+		}
+	}
+	return count;
 }
 
 template<unsigned SIZE>
@@ -66,6 +77,7 @@ public:
 	void vector_input(std::vector<int> q);
 	void show() const;
 	void dump() const;
+	bool update();
 };
 
 template<unsigned SIZE>
@@ -99,6 +111,31 @@ int board<SIZE>::get(const size_t pos) const {
 		}
 	}
 	return -1;
+}
+
+template<unsigned SIZE>
+bool board<SIZE>::update() {
+	size_t before = 0;
+	for (const auto& a: this->possibilities) {
+		before += bitset_count(a);
+	}
+	std::array<bits, SIZE*SIZE> all_or_possibilities;
+	for (size_t i = 0; i < SIZE*SIZE; i++) {
+		all_or_possibilities.at(i) = 0;
+		for (size_t j = 0; j < SIZE*SIZE; j++) {
+			if (i == j) {
+				continue;
+			}
+			all_or_possibilities.at(i) |= possibilities.at(j);
+		}
+		dump_bits(all_or_possibilities.at(i), 16);
+	}
+
+	size_t after = 0;
+	for (const auto& a: this->possibilities) {
+		after += bitset_count(a);
+	}
+	return before == after;
 }
 
 template<unsigned SIZE>
@@ -167,7 +204,7 @@ template<unsigned SIZE>
 void board<SIZE>::dump() const {
 	std::cout << "possibilities" << std::endl;
 	for (int i = 0; i < SIZE*SIZE; i++) {
-		std::cout << i << std::endl;
+		std::cout << std::dec << i << std::endl;
 		dump_bits(possibilities.at(i), SIZE*SIZE);
 	}
 	std::cout << std::endl;

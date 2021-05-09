@@ -2,4 +2,5 @@
 #include <iostream>
 
 namespace sudoku {
+
 } // namespace sudoku

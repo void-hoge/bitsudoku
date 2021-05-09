@@ -117,7 +117,10 @@ std::vector<int> minimum_56hints{
 int main() {
 	std::cout << "bit board sudoku solving" << std::endl;
 	sudoku::board<4> bd;
-	bd.vector_input(hard);
+	bd.vector_input(easy);
 	bd.show();
+	bd.dump();
+	bd.update();
+//	bd.dump();
 	return 0;
 }
