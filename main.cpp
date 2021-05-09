@@ -119,8 +119,9 @@ int main() {
 	sudoku::board<4> bd;
 	bd.vector_input(easy);
 	bd.show();
-	bd.dump();
-	bd.update();
-//	bd.dump();
+	std::cout << std::dec << bd.stable_count() << std::endl;
+	while(!bd.update());
+	bd.show();
+	std::cout << std::dec << bd.stable_count() << std::endl;
 	return 0;
 }

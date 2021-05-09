@@ -30,7 +30,7 @@ size_t bitset_count(const std::bitset<len> bits) {
 	return count;
 }
 
-template<unsigned SIZE>
+template<size_t SIZE>
 class board {
 private:
 	using bits = std::bitset<SIZE*SIZE*SIZE*SIZE>;
@@ -78,9 +78,10 @@ public:
 	void show() const;
 	void dump() const;
 	bool update();
+	size_t stable_count() const;
 };
 
-template<unsigned SIZE>
+template<size_t SIZE>
 void board<SIZE>::set(const size_t pos, const int num) {
 	if (pos >= SIZE*SIZE*SIZE*SIZE) {
 		throw std::logic_error("in function void board::set(pos, num): pos out of range.");
@@ -88,22 +89,22 @@ void board<SIZE>::set(const size_t pos, const int num) {
 	if (num < 0 || num >= SIZE*SIZE) {
 		throw std::logic_error("in function void board::set(pos, num): num out of range.");
 	}
-	this->stable.at(num)[pos] = true;
+	stable.at(num)[pos] = true;
 	const int x = pos/(SIZE*SIZE);
 	const int y = pos%(SIZE*SIZE);
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		if (i == num) {
-			this->possibilities.at(i) &= ~(this->vertical_mask<<y);
-			this->possibilities.at(i) &= ~(this->horizontal_mask<<(x*SIZE*SIZE));
-			this->possibilities.at(i) &= ~(this->block_mask<<((y/SIZE)*SIZE + (x/SIZE)*SIZE*SIZE*SIZE));
-			this->possibilities.at(i) |= (bits)1<<pos;
+			possibilities.at(i) &= ~(vertical_mask<<y);
+			possibilities.at(i) &= ~(horizontal_mask<<(x*SIZE*SIZE));
+			possibilities.at(i) &= ~(block_mask<<((y/SIZE)*SIZE + (x/SIZE)*SIZE*SIZE*SIZE));
+			possibilities.at(i) |= (bits)1<<pos;
 		}else {
-			this->possibilities.at(i) &= ~((bits)1<<pos);
+			possibilities.at(i) &= ~((bits)1<<pos);
 		}
 	}
 }
 
-template<unsigned SIZE>
+template<size_t SIZE>
 int board<SIZE>::get(const size_t pos) const {
 	for (size_t i = 0; i < stable.size(); i++) {
 		if (stable.at(i)[pos] == 1) {
@@ -113,32 +114,40 @@ int board<SIZE>::get(const size_t pos) const {
 	return -1;
 }
 
-template<unsigned SIZE>
+template<size_t SIZE>
 bool board<SIZE>::update() {
-	size_t before = 0;
-	for (const auto& a: this->possibilities) {
-		before += bitset_count(a);
+	bits stable_cells = 0;
+	for (const auto& a: stable) {
+		stable_cells |= a;
 	}
-	std::array<bits, SIZE*SIZE> all_or_possibilities;
-	for (size_t i = 0; i < SIZE*SIZE; i++) {
-		all_or_possibilities.at(i) = 0;
-		for (size_t j = 0; j < SIZE*SIZE; j++) {
+
+	for (size_t i = 0; i < stable.size(); i++) {
+		stable.at(i) = possibilities.at(i);
+		for (size_t j = 0; j < possibilities.size(); j++) {
 			if (i == j) {
 				continue;
+			}else {
+				stable.at(i) &= ~possibilities.at(j);
 			}
-			all_or_possibilities.at(i) |= possibilities.at(j);
 		}
-		dump_bits(all_or_possibilities.at(i), 16);
 	}
 
-	size_t after = 0;
-	for (const auto& a: this->possibilities) {
-		after += bitset_count(a);
+	bits new_stable_cells = 0;
+	for (const auto& a: stable) {
+		new_stable_cells |= a;
 	}
-	return before == after;
+	new_stable_cells ^= stable_cells;
+
+	for (size_t i = 0; i < new_stable_cells.size(); i++) {
+		if (new_stable_cells[i]) {
+			set(i, get(i));
+		}
+	}
+
+	return new_stable_cells == 0;
 }
 
-template<unsigned SIZE>
+template<size_t SIZE>
 board<SIZE>::board() {
 	for (auto &a: possibilities) {
 		a = 0;
@@ -149,21 +158,21 @@ board<SIZE>::board() {
 	}
 }
 
-template<unsigned SIZE>
+template<size_t SIZE>
 void board<SIZE>::vector_input(std::vector<int> q) {
 	if (q.size() != SIZE*SIZE*SIZE*SIZE) {
-		std::logic_error("in board::vector_input(std::vector<int> q): size of q is incorrect.");
+		throw std::logic_error("in board::vector_input(std::vector<int> q): size of q is incorrect.");
 	}
 	for (size_t i = 0; i < q.size(); i++) {
 		if (q.at(i) == 0) {
 			continue;
 		}else {
-			this->set(i, q.at(i)-1);
+			set(i, q.at(i)-1);
 		}
 	}
 }
 
-template<unsigned SIZE>
+template<size_t SIZE>
 void board<SIZE>::show() const {
 	std::cout << "+";
 	for (int i = 0; i < SIZE; i++) {
@@ -176,7 +185,7 @@ void board<SIZE>::show() const {
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		std::cout << "|";
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
-			int num = this->get(i * SIZE * SIZE + j);
+			int num = get(i * SIZE * SIZE + j);
 			if (num != -1) {
 				std::cout << " " << std::hex << num << " ";
 			} else {
@@ -189,8 +198,8 @@ void board<SIZE>::show() const {
 		std::cout << std::endl;
 		if (!((i+1)%SIZE)) {
 			std::cout << "+";
-			for (int i = 0; i < SIZE; i++) {
-				for (int j = 0; j < SIZE; j++) {
+			for (size_t j = 0; j < SIZE; j++) {
+				for (int k = 0; k < SIZE; k++) {
 					std::cout << "---";
 				}
 				std::cout << "+";
@@ -200,7 +209,7 @@ void board<SIZE>::show() const {
 	}
 }
 
-template<unsigned SIZE>
+template<size_t SIZE>
 void board<SIZE>::dump() const {
 	std::cout << "possibilities" << std::endl;
 	for (int i = 0; i < SIZE*SIZE; i++) {
@@ -213,6 +222,15 @@ void board<SIZE>::dump() const {
 //		std::cout << i << std::endl;
 //		dump_bits(stable.at(i), SIZE*SIZE);
 //	}
+}
+
+template<size_t SIZE>
+size_t board<SIZE>::stable_count() const {
+	bits hoge = 0;
+	for (auto& a: stable) {
+		hoge |= a;
+	}
+	return bitset_count(hoge);
 }
 
 } // namespace sudoku
