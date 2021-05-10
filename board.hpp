@@ -70,21 +70,25 @@ private:
 	const bits horizontal_mask = horizontal_mask_gen();
 	const bits vertical_mask = vertical_mask_gen();
 	const bits block_mask = block_mask_gen();
-	void set(const size_t pos, const int num);
 	int get(const size_t pos) const;
+	size_t count_possibilities() const;
 public:
+	void set(const size_t pos, const int num);
 	board();
-	void vector_input(std::vector<int> q);
+	void vector_input(const std::vector<int> q);
+	void cin_input();
 	void show() const;
 	void dump() const;
 	bool update();
 	size_t stable_count() const;
+	bits get_blank() const;
+	std::vector<int> get_settable_num(const size_t pos);
 };
 
 template<size_t SIZE>
 void board<SIZE>::set(const size_t pos, const int num) {
 	if (pos >= SIZE*SIZE*SIZE*SIZE) {
-		throw std::logic_error("in function void board::set(pos, num): pos out of range.");
+		throw std::out_of_range("in function void board::set(pos, num): pos out of range.");
 	}
 	if (num < 0 || num >= SIZE*SIZE) {
 		throw std::logic_error("in function void board::set(pos, num): num out of range.");
@@ -115,7 +119,18 @@ int board<SIZE>::get(const size_t pos) const {
 }
 
 template<size_t SIZE>
+size_t board<SIZE>::count_possibilities() const {
+	size_t count = 0;
+	for (const auto& a: possibilities) {
+		count += bitset_count(a);
+	}
+	return count;
+}
+
+template<size_t SIZE>
 bool board<SIZE>::update() {
+	auto before = count_possibilities();
+
 	bits stable_cells = 0;
 	for (const auto& a: stable) {
 		stable_cells |= a;
@@ -132,6 +147,16 @@ bool board<SIZE>::update() {
 		}
 	}
 
+	for (size_t i = 0; i < possibilities.size(); i++) {
+		for (int x = 0; x < SIZE; x++) {
+			for (int y = 0; y < SIZE; y++) {
+				if (bitset_count(possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE)) == 1) {
+					stable.at(i) |= possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
+				}
+			}
+		}
+	}
+
 	bits new_stable_cells = 0;
 	for (const auto& a: stable) {
 		new_stable_cells |= a;
@@ -143,8 +168,10 @@ bool board<SIZE>::update() {
 			set(i, get(i));
 		}
 	}
+//	return new_stable_cells == 0;
 
-	return new_stable_cells == 0;
+	auto after = count_possibilities();
+	return before - after;
 }
 
 template<size_t SIZE>
@@ -159,7 +186,7 @@ board<SIZE>::board() {
 }
 
 template<size_t SIZE>
-void board<SIZE>::vector_input(std::vector<int> q) {
+void board<SIZE>::vector_input(const std::vector<int> q) {
 	if (q.size() != SIZE*SIZE*SIZE*SIZE) {
 		throw std::logic_error("in board::vector_input(std::vector<int> q): size of q is incorrect.");
 	}
@@ -168,6 +195,19 @@ void board<SIZE>::vector_input(std::vector<int> q) {
 			continue;
 		}else {
 			set(i, q.at(i)-1);
+		}
+	}
+}
+
+template<size_t SIZE>
+void board<SIZE>::cin_input() {
+	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
+		int tmp;
+		std::cin >> tmp;
+		if (tmp == 0) {
+			continue;
+		}else {
+			set(i, tmp-1);
 		}
 	}
 }
@@ -226,11 +266,31 @@ void board<SIZE>::dump() const {
 
 template<size_t SIZE>
 size_t board<SIZE>::stable_count() const {
-	bits hoge = 0;
-	for (auto& a: stable) {
-		hoge |= a;
+	bits tmp = 0;
+	for (const auto& a: stable) {
+		tmp |= a;
 	}
-	return bitset_count(hoge);
+	return bitset_count(tmp);
+}
+
+template<size_t SIZE>
+std::bitset<SIZE*SIZE*SIZE*SIZE> board<SIZE>::get_blank() const {
+	bits tmp = 0;
+	for (const auto& a: stable) {
+		tmp |= a;
+	}
+	return ~tmp;
+}
+
+template<size_t SIZE>
+std::vector<int> board<SIZE>::get_settable_num(const size_t pos) {
+	std::vector<int> res;
+	for (size_t i = 0; i < possibilities.size(); i++) {
+		if (possibilities.at(i)[pos]) {
+			res.push_back(i);
+		}
+	}
+	return res;
 }
 
 } // namespace sudoku
