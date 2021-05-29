@@ -178,19 +178,18 @@ std::vector<int> debug{
 int main() {
 	std::cout << "bit board sudoku" << std::endl;
 	sudoku::board<4> bd;
-	bd.vector_input(hard);
+	bd.vector_input(hoge);
 	std::cout << bd.stable_count() << std::endl;
-//	bd.cin_input();
 	bd.show();
 	sudoku::solver<4> slv;
 	slv.solve(bd);
 
 
-//	sudoku::board<3> bd;
-//	bd.vector_input(minimum9x9);
-//	bd.show();
-//	sudoku::solver<3> slv;
-//	slv.solve(bd);
+	// sudoku::board<3> bd;
+	// bd.vector_input(minimum9x9);
+	// bd.show();
+	// sudoku::solver<3> slv;
+	// slv.solve(bd);
 
 	std::cout << std::dec << slv.node_count << std::endl;
 	return 0;

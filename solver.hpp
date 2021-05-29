@@ -28,6 +28,7 @@ void solver<SIZE>::solve(board<SIZE> bd) {
 	while (bd.update());
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
+		bd.show();
 		return;
 	}
 	size_t pos = 0;
