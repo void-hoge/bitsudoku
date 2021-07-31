@@ -13,6 +13,7 @@ class solver {
 private:
 	bool recursion(board<SIZE> bd, const size_t pos, const int num);
 public:
+	board<SIZE> solved;
 	size_t node_count;
 	solver();
 	void solve(board<SIZE> bd);

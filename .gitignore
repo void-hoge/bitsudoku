@@ -3,3 +3,4 @@
 *.out
 *.c
 bitsudoku
+.DS_Store

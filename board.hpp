@@ -74,6 +74,7 @@ private:
 	size_t count_possibilities() const;
 public:
 	void set(const size_t pos, const int num);
+	void erase_possibility(const size_t pos, const int num);
 	board();
 	void vector_input(const std::vector<int> q);
 	void cin_input();
@@ -83,6 +84,7 @@ public:
 	size_t stable_count() const;
 	bits get_blank() const;
 	std::vector<int> get_settable_num(const size_t pos);
+	bool find_error() const;
 };
 
 } // namespace sudoku

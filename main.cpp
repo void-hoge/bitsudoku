@@ -175,22 +175,43 @@ std::vector<int> debug{
 	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 };
 
-int main() {
-	std::cout << "bit board sudoku" << std::endl;
+std::vector<int> debug9x9 {
+	0,0,0, 1,0,0, 0,0,0,
+	4,2,5, 0,0,0, 0,0,0,
+	0,0,3, 0,0,0, 0,0,0,
+
+	0,0,0, 0,1,0, 0,0,0,
+	0,0,0, 0,0,0, 0,1,0,
+	0,0,2, 0,0,0, 0,0,0,
+
+	0,0,0, 0,0,1, 0,0,0,
+	2,3,4, 0,0,0, 0,0,0,
+	0,0,0, 0,0,0, 0,0,1
+};
+
+void test9() {
+	sudoku::board<3> bd;
+	bd.vector_input(minimum9x9);
+	bd.show();
+	sudoku::solver<3> slv;
+	slv.solve(bd);
+	std::cout << std::dec << slv.node_count << '\n';
+}
+
+void test16() {
 	sudoku::board<4> bd;
-	bd.vector_input(hoge);
-	std::cout << bd.stable_count() << std::endl;
+	bd.vector_input(hard);
 	bd.show();
 	sudoku::solver<4> slv;
 	slv.solve(bd);
+	std::cout << std::dec << slv.node_count << '\n';
+}
 
-
-	// sudoku::board<3> bd;
-	// bd.vector_input(minimum9x9);
-	// bd.show();
-	// sudoku::solver<3> slv;
-	// slv.solve(bd);
-
-	std::cout << std::dec << slv.node_count << std::endl;
+int main() {
+	std::cout << "bit board sudoku" << std::endl;
+	sudoku::board<3> bd;
+	bd.vector_input(debug9x9);
+	bd.update();
+	bd.dump();
 	return 0;
 }

@@ -13,6 +13,7 @@ solver<SIZE>::solver() {
 
 template<size_t SIZE>
 void solver<SIZE>::solve(board<SIZE> bd) {
+	node_count++;
 	while (bd.update());
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
@@ -30,6 +31,7 @@ void solver<SIZE>::solve(board<SIZE> bd) {
 		if (recursion(bd, pos, tmp)) {
 			return;
 		}
+		// bd.erase_possibility(pos, tmp);
 	}
 }
 
@@ -43,6 +45,9 @@ bool solver<SIZE>::recursion(board<SIZE> bd, const size_t pos, const int num) {
 	try {
 		while (bd.update());
 	} catch (std::exception& e) {
+		return false;
+	}
+	if (!bd.find_error()) {
 		return false;
 	}
 	const auto blank = bd.get_blank();
@@ -61,6 +66,7 @@ bool solver<SIZE>::recursion(board<SIZE> bd, const size_t pos, const int num) {
 		if (recursion(bd, npos, tmp)) {
 			return true;
 		}
+		// bd.erase_possibility(npos, tmp);
 	}
 	return false;
 }
