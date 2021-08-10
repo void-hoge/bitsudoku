@@ -2,17 +2,22 @@
 #define BOARD_CPP_INCLUDED
 
 #include "board.hpp"
+#include <vector>
+#include <array>
+#include <bitset>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 namespace sudoku {
 
 template<size_t SIZE>
 void board<SIZE>::set(const size_t pos, const int num) {
 	if (pos >= SIZE*SIZE*SIZE*SIZE) {
-		throw std::out_of_range("in function void board::set(pos, num): pos out of range.");
+		throw std::out_of_range(std::string("in function void board::set(pos, num): pos out of range. pos: ")+std::to_string(pos)+", num: "+std::to_string(num));
 	}
 	if (num < 0 || num >= SIZE*SIZE) {
-		throw std::logic_error("in function void board::set(pos, num): num out of range.");
+		throw std::logic_error(std::string("in function void board::set(pos, num): num out of range. pos: ")+std::to_string(pos)+", num: "+std::to_string(num));
 	}
 	stable.at(num)[pos] = true;
 	const int x = pos/(SIZE*SIZE);
@@ -275,11 +280,6 @@ void board<SIZE>::update_locked_candidate() {
 }
 
 template<size_t SIZE>
-void update_naked_pair() {
-
-}
-
-template<size_t SIZE>
 board<SIZE>::board() {
 	for (auto &a: possibilities) {
 		a = 0;
@@ -313,6 +313,25 @@ void board<SIZE>::cin_input() {
 			continue;
 		}else {
 			set(i, tmp-1);
+		}
+	}
+}
+
+template<size_t SIZE>
+void board<SIZE>::string_input(const std::string& q) {
+	std::istringstream input(q);
+	for (int pos = 0; !input.eof() & pos < SIZE*SIZE*SIZE*SIZE; pos++) {
+		std::string tmp;
+		input >> tmp;
+		if (tmp == "-") {
+			continue;
+		}else {
+			try {
+				int num = std::stoi(tmp);
+				set(pos, num-1);
+			} catch (std::invalid_argument e) {
+				std::cout << e.what() << ", input: " << tmp << ", pos: " << pos << '\n';
+			}
 		}
 	}
 }

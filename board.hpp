@@ -5,6 +5,7 @@
 #include <array>
 #include <bitset>
 #include <iostream>
+#include <string>
 
 namespace sudoku {
 
@@ -78,13 +79,14 @@ public:
 	board();
 	void vector_input(const std::vector<int> q);
 	void cin_input();
+	void string_input(const std::string& q);
 	void show() const;
 	void dump() const;
 	bool update();
 	void update_xwing();
 	void update_xwing_double();
 	void update_locked_candidate();
-	void update_naked_pair();
+	void update_naked_pair();	// WIP
 	size_t stable_count() const;
 	bits get_blank() const;
 	std::vector<int> get_settable_num(const size_t pos);

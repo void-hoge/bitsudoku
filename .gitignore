@@ -4,3 +4,4 @@
 *.c
 bitsudoku
 .DS_Store
+test.cpp
