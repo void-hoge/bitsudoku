@@ -208,7 +208,7 @@ void test9() {
 
 void test16() {
 	sudoku::board<4> bd;
-	bd.vector_input(test);
+	bd.vector_input(hard);
 	bd.show();
 	sudoku::solver<4> slv;
 	slv.solve(bd);
