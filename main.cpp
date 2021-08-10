@@ -39,18 +39,28 @@ std::vector<int> hardest9x9 {
 	0,0,0,0,0,9,7,0,0
 };
 
+std::vector<int> hard9x9 {
+	8,0,0,0,0,0,0,0,0,
+	0,0,3,6,0,0,0,0,0,
+	0,7,0,0,9,0,2,0,0,
+	0,5,0,0,0,7,0,0,0,
+	0,0,0,0,4,5,7,0,0,
+	0,0,0,1,0,0,0,3,0,
+	0,0,1,0,0,0,0,6,8,
+	0,0,8,5,0,0,0,1,0,
+	0,9,0,0,0,0,4,0,0
+};
+
 std::vector<int> test9x9 {
-	5,3,0,0,7,0,0,0,0,
-	6,0,0,1,9,5,0,0,0,
-	0,9,8,0,0,0,0,6,0,
-
-	8,0,0,0,6,0,0,0,3,
-	4,0,0,8,0,3,0,0,1,
-	7,0,0,0,2,0,0,0,6,
-
-	0,6,0,0,0,0,2,8,0,
-	0,0,0,4,1,9,0,0,5,
-	0,0,0,0,8,0,0,7,9
+	0,5,1,0,6,2,0,8,0,
+	0,7,0,4,8,5,0,0,6,
+	0,0,6,0,1,0,0,5,0,
+	0,0,2,0,0,9,0,6,0,
+	5,6,0,0,2,0,0,0,9,
+	0,8,0,1,0,6,3,0,0,
+	6,3,0,2,0,0,4,0,0,
+	7,2,0,6,4,1,0,0,0,
+	0,9,0,5,0,0,6,0,0
 };
 
 std::vector<int> minimum9x9{
@@ -176,42 +186,45 @@ std::vector<int> debug{
 };
 
 std::vector<int> debug9x9 {
-	0,0,0, 1,0,0, 0,0,0,
-	4,2,5, 0,0,0, 0,0,0,
-	0,0,3, 0,0,0, 0,0,0,
-
-	0,0,0, 0,1,0, 0,0,0,
-	0,0,0, 0,0,0, 0,1,0,
-	0,0,2, 0,0,0, 0,0,0,
-
-	0,0,0, 0,0,1, 0,0,0,
-	2,3,4, 0,0,0, 0,0,0,
-	0,0,0, 0,0,0, 0,0,1
+	2,0,6,0,7,0,0,0,5,
+	1,0,0,0,5,0,0,3,0,
+	9,5,0,1,6,3,8,4,0,
+	7,0,0,4,3,6,2,0,0,
+	0,0,0,0,9,0,0,0,0,
+	0,0,3,7,2,1,0,0,8,
+	0,6,9,2,8,7,0,5,1,
+	0,7,1,0,4,0,0,0,6,
+	5,0,0,0,1,0,7,0,3
 };
 
 void test9() {
 	sudoku::board<3> bd;
-	bd.vector_input(minimum9x9);
+	bd.vector_input(hardest9x9);
 	bd.show();
 	sudoku::solver<3> slv;
 	slv.solve(bd);
-	std::cout << std::dec << slv.node_count << '\n';
+	std::cout << std::dec << "node cuont: " << slv.node_count << '\n';
 }
 
 void test16() {
 	sudoku::board<4> bd;
-	bd.vector_input(hard);
+	bd.vector_input(test);
 	bd.show();
 	sudoku::solver<4> slv;
 	slv.solve(bd);
-	std::cout << std::dec << slv.node_count << '\n';
+	std::cout << std::dec << "node count: " << slv.node_count << '\n';
 }
 
 int main() {
 	std::cout << "bit board sudoku" << std::endl;
-	sudoku::board<3> bd;
-	bd.vector_input(debug9x9);
-	bd.update();
-	bd.dump();
+	// test9();
+	test16();
+	// sudoku::board<3> bd;
+	// bd.vector_input(hardest9x9);
+	// bd.show();
+	// bd.dump();
+	// bd.update_xwing();
+	// bd.show();
+	// bd.dump();
 	return 0;
 }

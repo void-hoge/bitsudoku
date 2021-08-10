@@ -33,6 +33,7 @@ void solver<SIZE>::solve(board<SIZE> bd) {
 		}
 		// bd.erase_possibility(pos, tmp);
 	}
+	std::cout << "no solution" << '\n';
 }
 
 template<size_t SIZE>

@@ -79,6 +79,10 @@ bool board<SIZE>::update() {
 		}
 	}
 
+	update_locked_candidate();
+	update_xwing_double();
+	// update_xwing();
+
 	for (size_t i = 0; i < possibilities.size(); i++) {
 		for (int x = 0; x < SIZE; x++) {
 			for (int y = 0; y < SIZE; y++) {
@@ -100,19 +104,179 @@ bool board<SIZE>::update() {
 			set(i, get(i));
 		}
 	}
-//	return new_stable_cells == 0;
-
-	// X-wing
-	// for (size_t i = 0; i < SIZE*SIZE; i++) {
-	// 	for (size_t j = 0; j < SIZE*SIZE; j++) {
-	// 		if (i%SIZE == j%SIZE) {
-	// 			continue;
-	// 		}
-	// 	}
-	// }
 
 	auto after = count_possibilities();
 	return before - after;
+}
+
+template<size_t SIZE>
+void board<SIZE>::update_xwing_double() {
+	// X-wing
+	for (auto& a: possibilities) {
+		std::vector<size_t> h_xw;
+		std::vector<size_t> v_xw;
+		for (size_t i = 0; i < SIZE*SIZE; i++) {
+			if (bitset_count(a&(horizontal_mask<<(i*SIZE*SIZE))) == 2) {
+				h_xw.push_back(i);
+			}
+			if (bitset_count(a&(vertical_mask<<i)) == 2) {
+				v_xw.push_back(i);
+			}
+		}
+
+		// horizontal
+		for (size_t j = 0; j < h_xw.size(); j++) {
+			for (size_t k = j+1; k < h_xw.size(); k++) {
+				if ((((a>>h_xw.at(j)*SIZE*SIZE)^
+				(a>>h_xw.at(k)*SIZE*SIZE))&horizontal_mask) == (bits)0) {
+					auto tmp = (a>>h_xw.at(j)*SIZE*SIZE)&horizontal_mask;
+					auto mask = (bits)1<<(h_xw.at(j)*SIZE*SIZE) | (bits)1<<(h_xw.at(k)*SIZE*SIZE);
+					for (size_t l = 0; l < SIZE*SIZE; l++) {
+						if ((tmp&(bits)1<<l) != (bits)0) {
+							a &= (mask << l | ~(vertical_mask << l));
+						}
+					}
+				}
+			}
+		}
+
+		// vertical
+		for (size_t j = 0; j < v_xw.size(); j++) {
+			for (size_t k = j+1; k < v_xw.size(); k++) {
+				if ((((a>>v_xw.at(j))^
+				(a>>v_xw.at(k)))&vertical_mask) == (bits)0) {
+					auto tmp = (a>>v_xw.at(j))&vertical_mask;
+					auto mask = (bits)1<<(v_xw.at(j)) | (bits)1<<v_xw.at(k);
+					for (size_t l = 0; l < SIZE*SIZE; l++) {
+						if ((tmp&(bits)1<<(l*SIZE*SIZE)) != (bits)0) {
+							a &= (mask << (l*SIZE*SIZE) | ~(horizontal_mask << (l*SIZE*SIZE)));
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+template<size_t SIZE>
+void board<SIZE>::update_xwing() {
+	for (auto&a: possibilities) {
+		for (size_t i = 2; i < SIZE; i++) {
+			std::vector<size_t> h_xw;
+			std::vector<size_t> v_xw;
+			for (size_t j = 0; j < SIZE*SIZE; j++) {
+				if (bitset_count(a&(horizontal_mask<<(j*SIZE*SIZE))) == i) {
+					h_xw.push_back(j);
+				}
+				if (bitset_count(a&(vertical_mask<<j)) == i) {
+					v_xw.push_back(j);
+				}
+			}
+			std::vector<bool> visited_h(h_xw.size(), false);
+			std::vector<bool> visited_v(v_xw.size(), false);
+			static auto check_visited = [](std::vector<bool>& v) {
+				for (auto a:v) {
+					if (!a) {
+						return true;
+					}
+				}
+				return false;
+			};
+			for (size_t j = 0; check_visited(visited_h);) {
+				while (visited_h.at(j) == true) {
+					j++;
+				}
+				visited_h.at(j) = true;
+				std::vector<size_t> stack;
+				stack.push_back(h_xw.at(j));
+				for (size_t k = j+1; k < h_xw.size(); k++) {
+					if ((((a>>h_xw.at(j)*SIZE*SIZE)^(a>>h_xw.at(k)*SIZE*SIZE))&horizontal_mask) == (bits)0) {
+						stack.push_back(h_xw.at(k));
+						visited_h.at(k) = true;
+					}
+				}
+				if (stack.size() == i) {
+					auto tmp = (a>>stack.at(0)*SIZE*SIZE)&horizontal_mask;
+					bits mask = 0;
+					for (auto b: stack) {
+						mask |= (bits)1<<(b*SIZE*SIZE);
+					}
+					for (size_t l = 0; l < SIZE*SIZE; l++) {
+						if ((tmp&(bits)1<<l) != (bits)0) {
+							a &= (mask << l | ~(vertical_mask << l));
+						}
+					}
+				}
+			}
+
+			for (size_t j = 0; check_visited(visited_v);) {
+				while (visited_v.at(j) == true) {
+					j++;
+				}
+				visited_v.at(j) = true;
+				std::vector<size_t> stack;
+				stack.push_back(v_xw.at(j));
+				for (size_t k = j+1; k < v_xw.size(); k++) {
+					if ((((a>>v_xw.at(j))^(a>>v_xw.at(k)))&vertical_mask) == (bits)0) {
+						stack.push_back(v_xw.at(k));
+						visited_v.at(k) = true;
+					}
+				}
+				if (stack.size() == i) {
+					auto tmp = (a>>stack.at(0))&vertical_mask;
+					bits mask = 0;
+					for (auto b: stack) {
+						mask |= (bits)1<<b;
+					}
+					for (size_t l = 0; l < SIZE*SIZE; l++) {
+						if ((tmp&(bits)1<<(l*SIZE*SIZE)) != (bits)0) {
+							a &= (mask << (l*SIZE*SIZE) | ~(horizontal_mask << (l*SIZE*SIZE)));
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+template<size_t SIZE>
+void board<SIZE>::update_locked_candidate() {
+	for (auto &a: possibilities) {
+		for (size_t x = 0; x < SIZE; x++) {
+			for (size_t y = 0; y < SIZE; y++) {
+				auto masked = a&block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
+				for (size_t i = x*SIZE; i < (x+1)*SIZE; i++) {
+					if (masked == (masked&(horizontal_mask<<(i*SIZE*SIZE)))) {
+						a &= masked|~(horizontal_mask<<(i*SIZE*SIZE));
+					}
+				}
+				for (size_t i = y*SIZE; i < (y+1)*SIZE; i++) {
+					if (masked == (masked&vertical_mask<<i)) {
+						a &= masked|~(vertical_mask<<i);
+					}
+				}
+			}
+		}
+		for (size_t i = 0; i < SIZE*SIZE; i++) {
+			auto masked_h = a&horizontal_mask<<(i*SIZE*SIZE);
+			auto masked_v = a&vertical_mask<<i;
+			for (size_t j = 0; j < SIZE; j++) {
+				// horizontal
+				if (masked_h == (masked_h&(block_mask<<((i/SIZE)*SIZE*SIZE*SIZE + j*SIZE)))) {
+					a &= masked_h|~(block_mask<<((i/SIZE)*SIZE*SIZE*SIZE + j*SIZE));
+				}
+				// vertical
+				if (masked_v == (masked_v&(block_mask<<(j*SIZE*SIZE*SIZE + (i/SIZE)*SIZE)))) {
+					a &= masked_v|~(block_mask<<(j*SIZE*SIZE*SIZE + (i/SIZE)*SIZE));
+				}
+			}
+		}
+	}
+}
+
+template<size_t SIZE>
+void update_naked_pair() {
+
 }
 
 template<size_t SIZE>

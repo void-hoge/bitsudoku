@@ -9,7 +9,7 @@
 namespace sudoku {
 
 template<size_t len>
-void dump_bits(const std::bitset<len> bits, const int line_len) {
+void dump_bits(const std::bitset<len>& bits, const int line_len) {
 	for (size_t i = 0; i < bits.size(); i++) {
 		std::cout << bits[i];
 		if (!((i+1)%line_len)) {
@@ -20,7 +20,7 @@ void dump_bits(const std::bitset<len> bits, const int line_len) {
 }
 
 template<size_t len>
-size_t bitset_count(const std::bitset<len> bits) {
+size_t bitset_count(const std::bitset<len>& bits) {
 	size_t count = 0;
 	for (size_t i = 0; i < bits.size(); i++) {
 		if (bits[i]) {
@@ -81,6 +81,10 @@ public:
 	void show() const;
 	void dump() const;
 	bool update();
+	void update_xwing();
+	void update_xwing_double();
+	void update_locked_candidate();
+	void update_naked_pair();
 	size_t stable_count() const;
 	bits get_blank() const;
 	std::vector<int> get_settable_num(const size_t pos);
