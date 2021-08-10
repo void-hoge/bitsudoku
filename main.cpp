@@ -196,7 +196,7 @@ void test16() {
 
 int main(int argc, char const *argv[]) {
 	if (argc != 2) {
-		throw std::invalid_argument("invalid argument");
+		throw std::invalid_argument("too much/few arguments.");
 	}
 	std::cout << "bit board sudoku" << std::endl;
 	std::string data;
