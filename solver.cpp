@@ -16,12 +16,12 @@ void solver<SIZE>::solve(board<SIZE> bd) {
 	node_count++;
 	try {
 		while (bd.update());
-	} catch {
+	} catch (std::exception e){
 		throw std::logic_error("invalid input (no solution)");
 	}
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
-		bd.show();
+		solved = bd;
 		return;
 	}
 	size_t pos = 0;
@@ -56,7 +56,7 @@ bool solver<SIZE>::recursion(board<SIZE> bd, const size_t pos, const int num) {
 	}
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
-		bd.show();
+		solved = bd;
 		return true;
 	}
 	size_t npos = 0;

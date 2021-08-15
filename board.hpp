@@ -6,6 +6,7 @@
 #include <bitset>
 #include <iostream>
 #include <string>
+#include <functional>
 
 namespace sudoku {
 
@@ -91,6 +92,17 @@ public:
 	bits get_blank() const;
 	std::vector<int> get_settable_num(const size_t pos);
 	bool find_error() const;
+	size_t size() const {
+		return SIZE;
+	}
+	board<SIZE>& operator=(const board<SIZE>& bd) {
+		if (bd.size() != SIZE) {
+			throw std::logic_error("different sizes");
+		}
+		this->possibilities = bd.possibilities;
+		this->stable = bd.stable;
+		return std::ref(*this);
+	}
 };
 
 } // namespace sudoku
