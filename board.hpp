@@ -40,7 +40,7 @@ private:
 	std::array<bits, SIZE*SIZE> stable;
 	static constexpr auto horizontal_mask_gen = []{
 		bits a = 0;
-		for (int i = 0; i < SIZE*SIZE; i++) {
+		for (size_t i = 0; i < SIZE*SIZE; i++) {
 			a <<= 1;
 			a |= 1;
 		}
@@ -49,7 +49,7 @@ private:
 
 	static constexpr auto vertical_mask_gen = [] {
 		bits a = 0;
-		for (int i = 0; i < SIZE*SIZE; i++) {
+		for (size_t i = 0; i < SIZE*SIZE; i++) {
 			a <<= SIZE*SIZE;
 			a |= 1;
 		}
@@ -58,12 +58,12 @@ private:
 
 	static constexpr auto block_mask_gen = [] {
 		bits a = 0;
-		for (int i = 0; i < SIZE; i++) {
+		for (size_t i = 0; i < SIZE; i++) {
 			a <<= 1;
 			a |= 1;
 		}
 		bits b = 0;
-		for (int i = 0; i < SIZE; i++) {
+		for (size_t i = 0; i < SIZE; i++) {
 			b <<= SIZE*SIZE;
 			b |= a;
 		}
@@ -91,6 +91,7 @@ public:
 	size_t stable_count() const;
 	bits get_blank() const;
 	std::vector<int> get_settable_num(const size_t pos);
+	size_t get_least_unstable() const;
 	bool find_error() const;
 	size_t size() const {
 		return SIZE;

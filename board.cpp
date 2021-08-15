@@ -73,6 +73,10 @@ bool board<SIZE>::update() {
 		stable_cells |= a;
 	}
 
+	update_locked_candidate();
+	update_xwing_double();
+	// update_xwing();
+
 	for (size_t i = 0; i < stable.size(); i++) {
 		stable.at(i) = possibilities.at(i);
 		for (size_t j = 0; j < possibilities.size(); j++) {
@@ -84,13 +88,9 @@ bool board<SIZE>::update() {
 		}
 	}
 
-	update_locked_candidate();
-	update_xwing_double();
-	// update_xwing();
-
 	for (size_t i = 0; i < possibilities.size(); i++) {
-		for (int x = 0; x < SIZE; x++) {
-			for (int y = 0; y < SIZE; y++) {
+		for (size_t x = 0; x < SIZE; x++) {
+			for (size_t y = 0; y < SIZE; y++) {
 				if (bitset_count(possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE)) == 1) {
 					stable.at(i) |= possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
 				}
@@ -320,7 +320,8 @@ void board<SIZE>::cin_input() {
 template<size_t SIZE>
 void board<SIZE>::string_input(const std::string& q) {
 	std::istringstream input(q);
-	for (int pos = 0; !input.eof() & pos < SIZE*SIZE*SIZE*SIZE; pos++) {
+	size_t pos = 0;
+	for (; !input.eof() && (pos < SIZE*SIZE*SIZE*SIZE); pos++) {
 		std::string tmp;
 		input >> tmp;
 		if (tmp == "-") {
@@ -334,13 +335,16 @@ void board<SIZE>::string_input(const std::string& q) {
 			}
 		}
 	}
+	if (pos != SIZE*SIZE*SIZE*SIZE) {
+		throw std::logic_error("invalid string input.");
+	}
 }
 
 template<size_t SIZE>
 void board<SIZE>::show() const {
 	std::cout << "+";
-	for (int i = 0; i < SIZE; i++) {
-		for (int j = 0; j < SIZE; j++) {
+	for (size_t i = 0; i < SIZE; i++) {
+		for (size_t j = 0; j < SIZE; j++) {
 			std::cout << "---";
 		}
 		std::cout << "+";
@@ -363,7 +367,7 @@ void board<SIZE>::show() const {
 		if (!((i+1)%SIZE)) {
 			std::cout << "+";
 			for (size_t j = 0; j < SIZE; j++) {
-				for (int k = 0; k < SIZE; k++) {
+				for (size_t k = 0; k < SIZE; k++) {
 					std::cout << "---";
 				}
 				std::cout << "+";
@@ -421,6 +425,30 @@ std::vector<int> board<SIZE>::get_settable_num(const size_t pos) {
 		}
 	}
 	return res;
+}
+
+template<size_t SIZE>
+size_t board<SIZE>::get_least_unstable() const {
+	std::array<int, SIZE*SIZE*SIZE*SIZE> tmp;
+	for (auto&a: tmp) {
+		a = 0;
+	}
+	for (const auto&a: possibilities) {
+		for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
+			tmp.at(i) += a[i];
+		}
+	}
+	int min = SIZE*SIZE;
+	int idx = -1;
+	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
+		if (tmp.at(i) > 1) {
+			if (min > tmp.at(i)) {
+				min = tmp.at(i);
+				idx = i;
+			}
+		}
+	}
+	return (size_t)idx;
 }
 
 template<size_t SIZE>

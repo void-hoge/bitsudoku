@@ -1,6 +1,7 @@
 #ifndef SOLVER_HPP_INCLUDED
 #define SOLVER_HPP_INCLUDED
 
+#include "board.hpp"
 #include <vector>
 #include <array>
 #include <bitset>
@@ -12,15 +13,17 @@ namespace sudoku {
 template<size_t SIZE>
 class solver {
 private:
-	bool recursion(board<SIZE> bd, const size_t pos, const int num);
+	bool dfs(board<SIZE> bd, const size_t pos, const int num, const bool full_search);
+	bool dfs_check_multi_sol(board<SIZE> bd, const size_t pos, const int num);
 	size_t node_count;
-	board<SIZE> solved;
+	std::vector<board<SIZE>> solved;
+	bool is_found_solution;
 public:
-	// std::vector<board<SIZE>> solved;
 	solver();
-	void solve(board<SIZE> bd);
+	void solve(board<SIZE> bd, const bool full_search);
+	bool is_multiple_solutions(board<SIZE> bd);
 	size_t get_node_count() const;
-	board<SIZE>& result() {
+	std::vector<board<SIZE>>& result() {
 		return std::ref(solved);
 	}
 };
