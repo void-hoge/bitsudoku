@@ -3,8 +3,8 @@
 ## class board
 - 数独のデータを保持し、それに対する操作のインターフェースを提供する。
 - テンプレート引数はブロックの1辺の長さをとる。
- - 全マス数は、(ブロックの1辺の長さ)^4となる。
- - sudoku::board<3>で雑誌などでよく見る、1辺9マス、全部で81マスの数独になる。
+  - 全マス数は、(ブロックの1辺の長さ)^4となる。
+  - sudoku::board<3>で雑誌などでよく見る、1辺9マス、全部で81マスの数独になる。
 
 ``` C++
 template<size_t SIZE>
@@ -14,21 +14,21 @@ void sudoku::board<SIZE>::string_input(const std::string& q); // std::stringに�
 ```
 
 - #### vector_input, cin_inputの仕様
- - 空白は0
- - 数字は1以上の整数
- - vector_inputは長さが適切でないものを渡すとstd::logic_errorを投げる。
+  - 空白は0
+  - 数字は1以上の整数
+  - vector_inputは長さが適切でないものを渡すとstd::logic_errorを投げる。
 
 - #### string_inputの仕様
- - 空白は '-'
- - 数字は1以上の10進整数
- - スペース区切り
- - problems/9x9や problems/16x16に問題例
+  - 空白は '-'
+  - 数字は1以上の10進整数
+  - スペース区切り
+  - problems/9x9や problems/16x16に問題例
 
 - #### showの仕様
- - 以下のように表示される。
- - 空白は' '(space)
- - 数字は0以上の16進整数(桁数削減のため)
- - 16進数で2桁以上になるものには対応していない。
+  - 以下のように表示される。
+  - 空白は' '(space)
+  - 数字は0以上の16進整数(桁数削減のため)
+  - 16進数で2桁以上になるものには対応していない。
 
 ```
 +------------+------------+------------+------------+
@@ -59,7 +59,7 @@ void sudoku::board<SIZE>::string_input(const std::string& q); // std::stringに�
 - `void solve(board<SIZE> bd)`で解く。
 - 結果がprivateメンバの`board<SIZE> solved`に格納され、`result()`でそれへの参照が得られる。
 - 深さ優先探索で訪れたノード数を`size_t node_count`に記録している。
- - `size_t get_node_count() const`で得られる。
+  - `size_t get_node_count() const`で得られる。
 
 ## main.cpp
 - ファイルによる入力をとりあえず実装
