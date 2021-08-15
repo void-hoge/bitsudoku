@@ -2,7 +2,7 @@
 /.idea/
 /build/
 *.out
-*.c
+*.o
 bitsudoku
 .DS_Store
 test.cpp
