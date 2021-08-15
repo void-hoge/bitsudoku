@@ -14,7 +14,11 @@ solver<SIZE>::solver() {
 template<size_t SIZE>
 void solver<SIZE>::solve(board<SIZE> bd) {
 	node_count++;
-	while (bd.update());
+	try {
+		while (bd.update());
+	} catch {
+		throw std::logic_error("invalid input (no solution)");
+	}
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
 		bd.show();
@@ -31,17 +35,16 @@ void solver<SIZE>::solve(board<SIZE> bd) {
 		if (recursion(bd, pos, tmp)) {
 			return;
 		}
-		// bd.erase_possibility(pos, tmp);
 	}
-	std::cout << "no solution" << '\n';
+	throw std::logic_error("invalid input (no solution)");
 }
 
 template<size_t SIZE>
 bool solver<SIZE>::recursion(board<SIZE> bd, const size_t pos, const int num) {
 	node_count++;
-	if (node_count%10000 == 0) {
-		std::cout << std::dec << node_count << std::endl;
-	}
+	// if (node_count%10000 == 0) {
+	// 	std::cout << std::dec << node_count << std::endl;
+	// }
 	bd.set(pos, num);
 	try {
 		while (bd.update());
@@ -67,9 +70,13 @@ bool solver<SIZE>::recursion(board<SIZE> bd, const size_t pos, const int num) {
 		if (recursion(bd, npos, tmp)) {
 			return true;
 		}
-		// bd.erase_possibility(npos, tmp);
 	}
 	return false;
+}
+
+template <size_t SIZE>
+size_t solver<SIZE>::get_node_count() const {
+	return node_count;
 }
 
 } // namespace sudoku

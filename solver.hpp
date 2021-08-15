@@ -12,11 +12,12 @@ template<size_t SIZE>
 class solver {
 private:
 	bool recursion(board<SIZE> bd, const size_t pos, const int num);
+	size_t node_count;
 public:
 	board<SIZE> solved;
-	size_t node_count;
 	solver();
 	void solve(board<SIZE> bd);
+	size_t get_node_count() const;
 };
 
 
