@@ -291,7 +291,7 @@ board<SIZE>::board() {
 }
 
 template<size_t SIZE>
-void board<SIZE>::vector_input(const std::vector<int> q) {
+void board<SIZE>::vector_input(const std::vector<int>& q) {
 	if (q.size() != SIZE*SIZE*SIZE*SIZE) {
 		throw std::logic_error("in board::vector_input(std::vector<int> q): size of q is incorrect.");
 	}

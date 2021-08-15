@@ -77,7 +77,7 @@ public:
 	void set(const size_t pos, const int num);
 	void erase_possibility(const size_t pos, const int num);
 	board();
-	void vector_input(const std::vector<int> q);
+	void vector_input(const std::vector<int>& q);
 	void cin_input();
 	void string_input(const std::string& q);
 	void show() const;
