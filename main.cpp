@@ -27,7 +27,7 @@ int main(int argc, char const *argv[]) {
 		slv.solve(bd);
 		slv.result().show();
 	} else {
-		throw std::invalid_argument("bitsudoku [3|4] *inputfile.txt*");
+		throw std::invalid_argument("bitsudoku [3|4] filename");
 	}
 	return 0;
 }
