@@ -20,7 +20,8 @@ solver<SIZE>::solver() {
 template<size_t SIZE>
 void solver<SIZE>::solve(board<SIZE> bd, const bool full_search) {
 	solved.clear();
-	node_count++;
+	node_count = 1;
+	is_found_solution = false;
 	try {
 		while (bd.update());
 	} catch (std::exception e){
@@ -28,6 +29,7 @@ void solver<SIZE>::solve(board<SIZE> bd, const bool full_search) {
 	}
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
+		is_found_solution = true;
 		solved.push_back(bd);
 		return;
 	}
@@ -66,6 +68,7 @@ bool solver<SIZE>::dfs(board<SIZE> bd, const size_t pos, const int num, const bo
 	// }
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
+		is_found_solution = true;
 		solved.push_back(bd);
 		return !full_search;
 	}
@@ -88,7 +91,7 @@ bool solver<SIZE>::dfs(board<SIZE> bd, const size_t pos, const int num, const bo
 template<size_t SIZE>
 bool solver<SIZE>::is_multiple_solutions(board<SIZE> bd) {
 	solved.clear();
-	node_count++;
+	node_count = 1;
 	is_found_solution = false;
 	try {
 		while (bd.update());
@@ -98,6 +101,7 @@ bool solver<SIZE>::is_multiple_solutions(board<SIZE> bd) {
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
 		solved.push_back(bd);
+		is_found_solution = true;
 		return false; // single solution
 	}
 	// size_t pos = 0;
@@ -107,13 +111,17 @@ bool solver<SIZE>::is_multiple_solutions(board<SIZE> bd) {
 	// 	}
 	// }
 	const size_t pos = bd.get_least_unstable();
-	const auto settable =  bd.get_settable_num(pos);
+	const auto settable = bd.get_settable_num(pos);
 	for (const auto& tmp: settable) {
 		if (dfs_check_multi_sol(bd, pos, tmp)) {
 			return true;
 		}
 	}
-	return false;
+	if (is_found_solution) {
+		return false;
+	} else {
+		throw std::logic_error("invalid input (no solution)");
+	}
 }
 
 template<size_t SIZE>

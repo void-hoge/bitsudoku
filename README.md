@@ -56,8 +56,11 @@ void sudoku::board<SIZE>::string_input(const std::string& q); // std::stringに�
 
 ## class solver
 - 深さ優先探索を行う。
-- `void solve(board<SIZE> bd)`で解く。
-- 結果がprivateメンバの`board<SIZE> solved`に格納され、`result()`でそれへの参照が得られる。
+- `void solve(board<SIZE> bd, const bool full_search)`で解く。
+  - `full_search == true`の時は全解を探索し、`full_search == false`の時は解を一つ見つけた時点で打ち切る。
+- `bool is_multiple_solutions(board<SIZE> bd)`は、解が2個発見された時点で探索を打ち切る。
+  - 解が一つの時はfalse、解が2つの時はtrueを返す。
+- 結果はprivateメンバの`std::vector<board<SIZE>> solved`にpush_backされ、`result()`でそれへの参照が得られる。
 - 深さ優先探索で訪れたノード数を`size_t node_count`に記録している。
   - `size_t get_node_count() const`で得られる。
 
