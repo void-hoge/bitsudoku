@@ -59,7 +59,7 @@ template<size_t SIZE>
 size_t board<SIZE>::count_possibilities() const {
 	size_t count = 0;
 	for (const auto& a: possibilities) {
-		count += bitset_count(a);
+		count += a.count();
 	}
 	return count;
 }
@@ -75,6 +75,7 @@ bool board<SIZE>::update() {
 
 	update_locked_candidate();
 	update_xwing_double();
+	// update_naked_pair();
 	// update_xwing();
 
 	for (size_t i = 0; i < stable.size(); i++) {
@@ -91,7 +92,7 @@ bool board<SIZE>::update() {
 	for (size_t i = 0; i < possibilities.size(); i++) {
 		for (size_t x = 0; x < SIZE; x++) {
 			for (size_t y = 0; y < SIZE; y++) {
-				if (bitset_count(possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE)) == 1) {
+				if ((possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE)).count() == 1) {
 					stable.at(i) |= possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
 				}
 			}
@@ -121,10 +122,10 @@ void board<SIZE>::update_xwing_double() {
 		std::vector<size_t> h_xw;
 		std::vector<size_t> v_xw;
 		for (size_t i = 0; i < SIZE*SIZE; i++) {
-			if (bitset_count(a&(horizontal_mask<<(i*SIZE*SIZE))) == 2) {
+			if ((a&(horizontal_mask<<(i*SIZE*SIZE))).count() == 2) {
 				h_xw.push_back(i);
 			}
-			if (bitset_count(a&(vertical_mask<<i)) == 2) {
+			if ((a&(vertical_mask<<i)).count() == 2) {
 				v_xw.push_back(i);
 			}
 		}
@@ -170,10 +171,10 @@ void board<SIZE>::update_xwing() {
 			std::vector<size_t> h_xw;
 			std::vector<size_t> v_xw;
 			for (size_t j = 0; j < SIZE*SIZE; j++) {
-				if (bitset_count(a&(horizontal_mask<<(j*SIZE*SIZE))) == i) {
+				if ((a&(horizontal_mask<<(j*SIZE*SIZE))).count() == i) {
 					h_xw.push_back(j);
 				}
-				if (bitset_count(a&(vertical_mask<<j)) == i) {
+				if ((a&(vertical_mask<<j)).count() == i) {
 					v_xw.push_back(j);
 				}
 			}
@@ -273,6 +274,46 @@ void board<SIZE>::update_locked_candidate() {
 				// vertical
 				if (masked_v == (masked_v&(block_mask<<(j*SIZE*SIZE*SIZE + (i/SIZE)*SIZE)))) {
 					a &= masked_v|~(block_mask<<(j*SIZE*SIZE*SIZE + (i/SIZE)*SIZE));
+				}
+			}
+		}
+	}
+}
+
+template<size_t	SIZE>
+void board<SIZE>::update_naked_pair() {
+	for (size_t i = 0; i < SIZE*SIZE; i++) {
+		for (size_t j = i+1; j < SIZE*SIZE; j++) {
+			auto pair = possibilities.at(i) & possibilities.at(j);
+			for (size_t k = 0; k < SIZE*SIZE; k++) {
+				if (i != k && j != k) {
+					pair &= ~possibilities.at(k);
+				}
+			}
+			bits mask_h = horizontal_mask;
+			bits mask_v = vertical_mask;
+			for (size_t k = 0; k < SIZE*SIZE; k++) {
+				bits tmp_h = pair&mask_h;
+				if (tmp_h.count() == 2) {
+					possibilities.at(i) &= tmp_h |~mask_h;
+					possibilities.at(j) &= tmp_h |~mask_h;
+				}
+				mask_h <<= SIZE*SIZE;
+
+				bits tmp_v = pair&mask_v;
+				if (tmp_v.count() == 2) {
+					possibilities.at(i) &= tmp_v |~mask_v;
+					possibilities.at(j) &= tmp_v |~mask_v;
+				}
+				mask_v <<= 1;
+
+				size_t x = k/SIZE;
+			 	size_t y = k%SIZE;
+				bits mask_b = block_mask<<(x*SIZE*SIZE*SIZE + y*SIZE);
+				bits tmp_b = pair&mask_b;
+				if (tmp_b.count() == 2) {
+					possibilities.at(i) &= tmp_b |~mask_b;
+					possibilities.at(j) &= tmp_b |~mask_b;
 				}
 			}
 		}
@@ -404,7 +445,7 @@ size_t board<SIZE>::stable_count() const {
 	for (const auto& a: stable) {
 		tmp |= a;
 	}
-	return bitset_count(tmp);
+	return tmp.count();
 }
 
 template<size_t SIZE>

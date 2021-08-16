@@ -17,15 +17,27 @@ int main(int argc, char const *argv[]) {
 		bd.string_input(data);
 		bd.show();
 		sudoku::solver<3> slv;
-		slv.solve(bd);
-		slv.result().show();
+		slv.solve(bd, true);
+		std::cout << std::dec << slv.get_node_count() << '\n';
+		for (const auto& a: slv.result()) {
+			a.show();
+		}
+		std::cout << slv.result().size() << '\n';
+		std::cout << slv.is_multiple_solutions(bd) << '\n';
+		std::cout << slv.result().size() << '\n';
 	} else if (opt == 4) {
 		sudoku::board<4> bd;
 		bd.string_input(data);
 		bd.show();
 		sudoku::solver<4> slv;
-		slv.solve(bd);
-		slv.result().show();
+		// slv.solve(bd, true);
+		// for (const auto& a: slv.result()) {
+		// 	a.show();
+		// }
+		// std::cout << slv.result().size() << '\n';
+		std::cout << slv.is_multiple_solutions(bd) << '\n';
+		std::cout << slv.result().size() << '\n';
+		std::cout << std::dec << slv.get_node_count() << '\n';
 	} else {
 		throw std::invalid_argument("bitsudoku [3|4] filename");
 	}

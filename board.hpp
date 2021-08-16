@@ -21,17 +21,6 @@ void dump_bits(const std::bitset<len>& bits, const int line_len) {
 	std::cout << std::endl;
 }
 
-template<size_t len>
-size_t bitset_count(const std::bitset<len>& bits) {
-	size_t count = 0;
-	for (size_t i = 0; i < bits.size(); i++) {
-		if (bits[i]) {
-			count++;
-		}
-	}
-	return count;
-}
-
 template<size_t SIZE>
 class board {
 private:
@@ -87,7 +76,7 @@ public:
 	void update_xwing();
 	void update_xwing_double();
 	void update_locked_candidate();
-	void update_naked_pair();	// WIP
+	void update_naked_pair();
 	size_t stable_count() const;
 	bits get_blank() const;
 	std::vector<int> get_settable_num(const size_t pos);
