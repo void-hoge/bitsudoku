@@ -72,3 +72,4 @@ void sudoku::board<SIZE>::string_input(const std::string& q); // std::stringに�
 - Hull House (updateに実装)
 - X wing (update_xwing, update_xwing_doubleに実装)
 - Locked Candidate/Localization (column, row, block) (update_locked_candidateに実装)
+- Naked Pair (update_naked_pairに実装、unused)
