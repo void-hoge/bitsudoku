@@ -63,25 +63,39 @@ private:
 	const bits block_mask = block_mask_gen();
 	int get(const size_t pos) const;
 	size_t count_possibilities() const;
+	void update_xwing();
+	void update_xwing_double();
+	void update_locked_candidate();
+	void update_naked_pair();
 public:
 	void set(const size_t pos, const int num);
 	void erase_possibility(const size_t pos, const int num);
+	void erase_stable(const size_t pos);
+	void build_possibilities();
 	board();
 	void vector_input(const std::vector<int>& q);
 	void cin_input();
 	void string_input(const std::string& q);
 	void show() const;
 	void dump() const;
+	std::string string_output() const;
 	bool update();
-	void update_xwing();
-	void update_xwing_double();
-	void update_locked_candidate();
-	void update_naked_pair();
 	size_t stable_count() const;
 	bits get_blank() const;
 	std::vector<int> get_settable_num(const size_t pos);
 	size_t get_least_unstable() const;
 	bool find_error() const;
+	void reset_possibilities() {
+		for (auto&a: possibilities) {
+			a = 0;
+			a.flip();
+		}
+	}
+	void reset_stable() {
+		for (auto&a: stable) {
+			a = 0;
+		}
+	}
 	size_t size() const {
 		return SIZE;
 	}

@@ -76,3 +76,10 @@ void sudoku::board<SIZE>::string_input(const std::string& q); // std::stringに�
 - X wing (update_xwing, update_xwing_doubleに実装)
 - Locked Candidate/Localization (column, row, block) (update_locked_candidateに実装)
 - Naked Pair (update_naked_pairに実装、unused)
+
+## class generator
+- ランダムに数独の問題を生成する。
+- コンストラクタはstd::mt19937に渡すシード値をとる。
+- `void generate(board<SIZE>& bd, const size_t num_of_hints)`は数独を生成する関数
+  - num_of_hintsは、生成する数独のヒント数
+- fillで適当な完成した数独を生成し、num_of_hintsに達するまで穴を開けていく。

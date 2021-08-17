@@ -46,6 +46,25 @@ void board<SIZE>::erase_possibility(const size_t pos, const int num) {
 }
 
 template<size_t SIZE>
+void board<SIZE>::erase_stable(const size_t pos) {
+	if (pos >= SIZE*SIZE*SIZE*SIZE) {
+		throw std::out_of_range("in function void board::erase_possibility(pos, num): pos out of range.");
+	}
+	for (auto&a: stable) {
+		a[pos] = false;
+	}
+}
+
+template<size_t SIZE>
+void board<SIZE>::build_possibilities() {
+	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
+		try {
+			set(i, get(i));
+		}catch (std::logic_error e) {}
+	}
+}
+
+template<size_t SIZE>
 int board<SIZE>::get(const size_t pos) const {
 	for (size_t i = 0; i < stable.size(); i++) {
 		if (stable.at(i)[pos] == 1) {
@@ -437,6 +456,21 @@ void board<SIZE>::dump() const {
 		}
 		std::cout << '\n';
 	}
+}
+
+template<size_t SIZE>
+std::string board<SIZE>::string_output() const {
+	std::string result;
+	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
+		auto tmp = get(i);
+		if (tmp == -1) {
+			result += "- ";
+		}else {
+			result += std::to_string(tmp+1);
+			result += " ";
+		}
+	}
+	return result;
 }
 
 template<size_t SIZE>
