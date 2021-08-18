@@ -83,3 +83,7 @@ void sudoku::board<SIZE>::string_input(const std::string& q); // std::stringに�
 - `void generate(board<SIZE>& bd, const size_t num_of_hints)`は数独を生成する関数
   - num_of_hintsは、生成する数独のヒント数
 - fillで適当な完成した数独を生成し、num_of_hintsに達するまで穴を開けていく。
+
+## sudokugen.cpp
+- 入力形式は、`./sudokugen [3/4] clues`
+- 例えば、`./sudokugen 3 25`で、9x9でヒント25個の数独が得られる。
