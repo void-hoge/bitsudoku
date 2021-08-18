@@ -24,31 +24,31 @@ void board<SIZE>::set(const size_t pos, const int num) {
 	const int y = pos%(SIZE*SIZE);
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		if (i == num) {
-			possibilities.at(i) &= ~(vertical_mask<<y);
-			possibilities.at(i) &= ~(horizontal_mask<<(x*SIZE*SIZE));
-			possibilities.at(i) &= ~(block_mask<<((y/SIZE)*SIZE + (x/SIZE)*SIZE*SIZE*SIZE));
-			possibilities.at(i)[pos] = true;
+			candidates.at(i) &= ~(vertical_mask<<y);
+			candidates.at(i) &= ~(horizontal_mask<<(x*SIZE*SIZE));
+			candidates.at(i) &= ~(block_mask<<((y/SIZE)*SIZE + (x/SIZE)*SIZE*SIZE*SIZE));
+			candidates.at(i)[pos] = true;
 		}else {
-			possibilities.at(i)[pos] = false;
+			candidates.at(i)[pos] = false;
 		}
 	}
 }
 
 template<size_t SIZE>
-void board<SIZE>::erase_possibility(const size_t pos, const int num) {
+void board<SIZE>::erase_candidate(const size_t pos, const int num) {
 	if (pos >= SIZE*SIZE*SIZE*SIZE) {
-		throw std::out_of_range("in function void board::erase_possibility(pos, num): pos out of range.");
+		throw std::out_of_range("in function void board::erase_candidate(pos, num): pos out of range.");
 	}
 	if (num < 0 || num >= SIZE*SIZE) {
-		throw std::logic_error("in function void board::erase_possibility(pos, num): num out of range.");
+		throw std::logic_error("in function void board::erase_candidate(pos, num): num out of range.");
 	}
-	possibilities.at(num)[pos] = false;
+	candidates.at(num)[pos] = false;
 }
 
 template<size_t SIZE>
 void board<SIZE>::erase_stable(const size_t pos) {
 	if (pos >= SIZE*SIZE*SIZE*SIZE) {
-		throw std::out_of_range("in function void board::erase_possibility(pos, num): pos out of range.");
+		throw std::out_of_range("in function void board::erase_candidate(pos, num): pos out of range.");
 	}
 	for (auto&a: stable) {
 		a[pos] = false;
@@ -56,7 +56,7 @@ void board<SIZE>::erase_stable(const size_t pos) {
 }
 
 template<size_t SIZE>
-void board<SIZE>::build_possibilities() {
+void board<SIZE>::build_candidates() {
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
 		try {
 			set(i, get(i));
@@ -75,9 +75,9 @@ int board<SIZE>::get(const size_t pos) const {
 }
 
 template<size_t SIZE>
-size_t board<SIZE>::count_possibilities() const {
+size_t board<SIZE>::count_candidates() const {
 	size_t count = 0;
-	for (const auto& a: possibilities) {
+	for (const auto& a: candidates) {
 		count += a.count();
 	}
 	return count;
@@ -85,7 +85,7 @@ size_t board<SIZE>::count_possibilities() const {
 
 template<size_t SIZE>
 bool board<SIZE>::update() {
-	auto before = count_possibilities();
+	auto before = count_candidates();
 
 	bits stable_cells = 0;
 	for (const auto& a: stable) {
@@ -98,21 +98,21 @@ bool board<SIZE>::update() {
 	// update_xwing();
 
 	for (size_t i = 0; i < stable.size(); i++) {
-		stable.at(i) = possibilities.at(i);
-		for (size_t j = 0; j < possibilities.size(); j++) {
+		stable.at(i) = candidates.at(i);
+		for (size_t j = 0; j < candidates.size(); j++) {
 			if (i == j) {
 				continue;
 			}else {
-				stable.at(i) &= ~possibilities.at(j);
+				stable.at(i) &= ~candidates.at(j);
 			}
 		}
 	}
 
-	for (size_t i = 0; i < possibilities.size(); i++) {
+	for (size_t i = 0; i < candidates.size(); i++) {
 		for (size_t x = 0; x < SIZE; x++) {
 			for (size_t y = 0; y < SIZE; y++) {
-				if ((possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE)).count() == 1) {
-					stable.at(i) |= possibilities.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
+				if ((candidates.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE)).count() == 1) {
+					stable.at(i) |= candidates.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
 				}
 			}
 		}
@@ -130,14 +130,14 @@ bool board<SIZE>::update() {
 		}
 	}
 
-	auto after = count_possibilities();
+	auto after = count_candidates();
 	return before - after;
 }
 
 template<size_t SIZE>
 void board<SIZE>::update_xwing_double() {
 	// X-wing
-	for (auto& a: possibilities) {
+	for (auto& a: candidates) {
 		std::vector<size_t> h_xw;
 		std::vector<size_t> v_xw;
 		for (size_t i = 0; i < SIZE*SIZE; i++) {
@@ -185,7 +185,7 @@ void board<SIZE>::update_xwing_double() {
 
 template<size_t SIZE>
 void board<SIZE>::update_xwing() {
-	for (auto&a: possibilities) {
+	for (auto&a: candidates) {
 		for (size_t i = 2; i < SIZE; i++) {
 			std::vector<size_t> h_xw;
 			std::vector<size_t> v_xw;
@@ -266,7 +266,7 @@ void board<SIZE>::update_xwing() {
 
 template<size_t SIZE>
 void board<SIZE>::update_locked_candidate() {
-	for (auto &a: possibilities) {
+	for (auto &a: candidates) {
 		for (size_t x = 0; x < SIZE; x++) {
 			for (size_t y = 0; y < SIZE; y++) {
 				auto masked = a&block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
@@ -303,10 +303,10 @@ template<size_t	SIZE>
 void board<SIZE>::update_naked_pair() {
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		for (size_t j = i+1; j < SIZE*SIZE; j++) {
-			auto pair = possibilities.at(i) & possibilities.at(j);
+			auto pair = candidates.at(i) & candidates.at(j);
 			for (size_t k = 0; k < SIZE*SIZE; k++) {
 				if (i != k && j != k) {
-					pair &= ~possibilities.at(k);
+					pair &= ~candidates.at(k);
 				}
 			}
 			bits mask_h = horizontal_mask;
@@ -314,15 +314,15 @@ void board<SIZE>::update_naked_pair() {
 			for (size_t k = 0; k < SIZE*SIZE; k++) {
 				bits tmp_h = pair&mask_h;
 				if (tmp_h.count() == 2) {
-					possibilities.at(i) &= tmp_h |~mask_h;
-					possibilities.at(j) &= tmp_h |~mask_h;
+					candidates.at(i) &= tmp_h |~mask_h;
+					candidates.at(j) &= tmp_h |~mask_h;
 				}
 				mask_h <<= SIZE*SIZE;
 
 				bits tmp_v = pair&mask_v;
 				if (tmp_v.count() == 2) {
-					possibilities.at(i) &= tmp_v |~mask_v;
-					possibilities.at(j) &= tmp_v |~mask_v;
+					candidates.at(i) &= tmp_v |~mask_v;
+					candidates.at(j) &= tmp_v |~mask_v;
 				}
 				mask_v <<= 1;
 
@@ -331,8 +331,8 @@ void board<SIZE>::update_naked_pair() {
 				bits mask_b = block_mask<<(x*SIZE*SIZE*SIZE + y*SIZE);
 				bits tmp_b = pair&mask_b;
 				if (tmp_b.count() == 2) {
-					possibilities.at(i) &= tmp_b |~mask_b;
-					possibilities.at(j) &= tmp_b |~mask_b;
+					candidates.at(i) &= tmp_b |~mask_b;
+					candidates.at(j) &= tmp_b |~mask_b;
 				}
 			}
 		}
@@ -341,7 +341,7 @@ void board<SIZE>::update_naked_pair() {
 
 template<size_t SIZE>
 board<SIZE>::board() {
-	for (auto &a: possibilities) {
+	for (auto &a: candidates) {
 		a = 0;
 		a.flip();
 	}
@@ -439,7 +439,7 @@ void board<SIZE>::show() const {
 
 template<size_t SIZE>
 void board<SIZE>::dump() const {
-	std::cout << "possibilities" << std::endl;
+	std::cout << "candidates" << std::endl;
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		std::cout << std::dec << i;
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
@@ -450,7 +450,7 @@ void board<SIZE>::dump() const {
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
 			for (size_t k = 0; k < SIZE*SIZE; k++) {
-				std::cout << possibilities.at(j)[i*SIZE*SIZE+k];
+				std::cout << candidates.at(j)[i*SIZE*SIZE+k];
 			}
 			std::cout << ' ';
 		}
@@ -494,8 +494,8 @@ std::bitset<SIZE*SIZE*SIZE*SIZE> board<SIZE>::get_blank() const {
 template<size_t SIZE>
 std::vector<int> board<SIZE>::get_settable_num(const size_t pos) {
 	std::vector<int> res;
-	for (size_t i = 0; i < possibilities.size(); i++) {
-		if (possibilities.at(i)[pos]) {
+	for (size_t i = 0; i < candidates.size(); i++) {
+		if (candidates.at(i)[pos]) {
 			res.push_back(i);
 		}
 	}
@@ -508,7 +508,7 @@ size_t board<SIZE>::get_least_unstable() const {
 	for (auto&a: tmp) {
 		a = 0;
 	}
-	for (const auto&a: possibilities) {
+	for (const auto&a: candidates) {
 		for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
 			tmp.at(i) += a[i];
 		}
@@ -530,7 +530,7 @@ template<size_t SIZE>
 bool board<SIZE>::find_error() const {
 	// error -> false, no error -> true
 	bits tmp = 0;
-	for (const auto& a: possibilities) {
+	for (const auto& a: candidates) {
 		tmp |= a;
 	}
 	return (~tmp) == 0;

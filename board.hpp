@@ -25,7 +25,7 @@ template<size_t SIZE>
 class board {
 private:
 	using bits = std::bitset<SIZE*SIZE*SIZE*SIZE>;
-	std::array<bits, SIZE*SIZE> possibilities;
+	std::array<bits, SIZE*SIZE> candidates;
 	std::array<bits, SIZE*SIZE> stable;
 	static constexpr auto horizontal_mask_gen = []{
 		bits a = 0;
@@ -62,16 +62,16 @@ private:
 	const bits vertical_mask = vertical_mask_gen();
 	const bits block_mask = block_mask_gen();
 	int get(const size_t pos) const;
-	size_t count_possibilities() const;
+	size_t count_candidates() const;
 	void update_xwing();
 	void update_xwing_double();
 	void update_locked_candidate();
 	void update_naked_pair();
 public:
 	void set(const size_t pos, const int num);
-	void erase_possibility(const size_t pos, const int num);
+	void erase_candidate(const size_t pos, const int num);
 	void erase_stable(const size_t pos);
-	void build_possibilities();
+	void build_candidates();
 	board();
 	void vector_input(const std::vector<int>& q);
 	void cin_input();
@@ -85,8 +85,8 @@ public:
 	std::vector<int> get_settable_num(const size_t pos);
 	size_t get_least_unstable() const;
 	bool find_error() const;
-	void reset_possibilities() {
-		for (auto&a: possibilities) {
+	void reset_candidates() {
+		for (auto&a: candidates) {
 			a = 0;
 			a.flip();
 		}
@@ -103,7 +103,7 @@ public:
 		if (bd.size() != SIZE) {
 			throw std::logic_error("different sizes");
 		}
-		this->possibilities = bd.possibilities;
+		this->candidates = bd.candidates;
 		this->stable = bd.stable;
 		return std::ref(*this);
 	}

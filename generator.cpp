@@ -13,8 +13,8 @@ template<size_t SIZE>
 void generator<SIZE>::generate(board<SIZE>& bd, const size_t num_of_hints){
 	fill(bd);
 	// bd.show();
-	bd.reset_possibilities();
-	bd.build_possibilities();
+	bd.reset_candidates();
+	bd.build_candidates();
 	const auto notblank = ~bd.get_blank();
 	while (true) {
 		const size_t tmp = mt()%notblank.count();
@@ -41,8 +41,8 @@ bool generator<SIZE>::dfs(board<SIZE> bd, const int n, const size_t pos) {
 		return true;
 	}
 	bd.erase_stable(pos);
-	bd.reset_possibilities();
-	bd.build_possibilities();
+	bd.reset_candidates();
+	bd.build_candidates();
 	const auto notblank = ~bd.get_blank();
 	if (slv.is_multiple_solutions(bd)) {
 		return false;
@@ -69,7 +69,7 @@ bool generator<SIZE>::dfs(board<SIZE> bd, const int n, const size_t pos) {
 template<size_t SIZE>
 void generator<SIZE>::fill(board<SIZE>& bd) {
 	bd.reset_stable();
-	bd.reset_possibilities();
+	bd.reset_candidates();
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		const auto blank = bd.get_blank();
 		size_t tmp = mt()%blank.count();
