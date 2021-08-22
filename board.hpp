@@ -68,11 +68,12 @@ private:
 	void update_locked_candidate();
 	void update_naked_pair();
 public:
+	void update_naked_pair2();
+	board();
 	void set(const size_t pos, const int num);
 	void erase_candidate(const size_t pos, const int num);
 	void erase_stable(const size_t pos);
 	void build_candidates();
-	board();
 	void vector_input(const std::vector<int>& q);
 	void cin_input();
 	void string_input(const std::string& q);

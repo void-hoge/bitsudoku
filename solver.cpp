@@ -27,6 +27,9 @@ void solver<SIZE>::solve(board<SIZE> bd, const bool full_search) {
 	} catch (std::exception e){
 		throw std::logic_error("invalid input (no solution)");
 	}
+	if (!bd.find_error()) {
+		throw std::logic_error("invalid input (no solution)");
+	}
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
 		is_found_solution = true;
@@ -54,18 +57,18 @@ void solver<SIZE>::solve(board<SIZE> bd, const bool full_search) {
 template<size_t SIZE>
 bool solver<SIZE>::dfs(board<SIZE> bd, const size_t pos, const int num, const bool full_search) {
 	node_count++;
-	// if (node_count%10000 == 0) {
-	// 	std::cout << std::dec << node_count << std::endl;
-	// }
+	if (node_count%10000 == 0) {
+		std::cout << std::dec << node_count << std::endl;
+	}
 	bd.set(pos, num);
 	try {
 		while (bd.update());
 	} catch (std::exception& e) {
 		return false;
 	}
-	// if (!bd.find_error()) {
-	// 	return false;
-	// }
+	if (!bd.find_error()) {
+		return false;
+	}
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
 		is_found_solution = true;
@@ -79,7 +82,8 @@ bool solver<SIZE>::dfs(board<SIZE> bd, const size_t pos, const int num, const bo
 	// 	}
 	// }
 	const size_t npos = bd.get_least_unstable();
-	const auto settable =  bd.get_settable_num(npos);
+	// std::cerr << blank << '\n';
+	const auto settable = bd.get_settable_num(npos);
 	for (const auto& tmp: settable) {
 		if (dfs(bd, npos, tmp, full_search)) {
 			return true;
@@ -96,6 +100,9 @@ bool solver<SIZE>::is_multiple_solutions(board<SIZE> bd) {
 	try {
 		while (bd.update());
 	} catch (std::exception e){
+		throw std::logic_error("invalid input (no solution)");
+	}
+	if (!bd.find_error()) {
 		throw std::logic_error("invalid input (no solution)");
 	}
 	const auto blank = bd.get_blank();
@@ -127,10 +134,16 @@ bool solver<SIZE>::is_multiple_solutions(board<SIZE> bd) {
 template<size_t SIZE>
 bool solver<SIZE>::dfs_check_multi_sol(board<SIZE> bd, const size_t pos, const int num) {
 	node_count++;
+	if (node_count%10000 == 0) {
+		std::cout << std::dec << node_count << std::endl;
+	}
 	bd.set(pos, num);
 	try {
 		while (bd.update());
 	} catch (std::exception& e) {
+		return false;
+	}
+	if (!bd.find_error()) {
 		return false;
 	}
 	const auto blank = bd.get_blank();

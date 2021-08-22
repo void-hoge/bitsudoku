@@ -94,7 +94,7 @@ bool board<SIZE>::update() {
 
 	update_locked_candidate();
 	update_xwing_double();
-	// update_naked_pair();
+	update_naked_pair();
 	// update_xwing();
 
 	for (size_t i = 0; i < stable.size(); i++) {
@@ -339,6 +339,19 @@ void board<SIZE>::update_naked_pair() {
 	}
 }
 
+template <size_t SIZE>
+void board<SIZE>::update_naked_pair2() {
+	std::array<unsigned, SIZE*SIZE*SIZE*SIZE> tmp;
+	for (auto&a: tmp) {
+		a = 0;
+	}
+	for (size_t i = 0; i < SIZE*SIZE; i++) {
+		for (size_t j = 0; j < SIZE*SIZE*SIZE*SIZE; j++) {
+			tmp.at(j) |= ((unsigned)1&candidates.at(i)[j])<<i;
+		}
+	}
+}
+
 template<size_t SIZE>
 board<SIZE>::board() {
 	for (auto &a: candidates) {
@@ -495,6 +508,7 @@ template<size_t SIZE>
 std::vector<int> board<SIZE>::get_settable_num(const size_t pos) {
 	std::vector<int> res;
 	for (size_t i = 0; i < candidates.size(); i++) {
+		// std::cerr << "at get_settable_num "<< i << " " << pos << '\n';
 		if (candidates.at(i)[pos]) {
 			res.push_back(i);
 		}
@@ -514,13 +528,12 @@ size_t board<SIZE>::get_least_unstable() const {
 		}
 	}
 	int min = SIZE*SIZE;
-	int idx = -1;
+	size_t idx = -1;
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
-		if (tmp.at(i) > 1) {
-			if (min > tmp.at(i)) {
-				min = tmp.at(i);
-				idx = i;
-			}
+		// std::cerr << "at get_least_unstable " << tmp.at(i) << '\n';
+		if (tmp.at(i) > 1 && min > tmp.at(i)) {
+			min = tmp.at(i);
+			idx = i;
 		}
 	}
 	return (size_t)idx;
