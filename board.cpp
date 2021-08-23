@@ -242,7 +242,7 @@ void board<SIZE>::update_xwing() {
 				std::vector<size_t> stack;
 				stack.push_back(v_xw.at(j));
 				for (size_t k = j+1; k < v_xw.size(); k++) {
-					if ((((a>>v_xw.at(j))^(a>>v_xw.at(k)))&vertical_mask) == (bits)0) {
+					if ((((a>>v_xw.at(j))^(a>>v_xw.at(k)))&vertical_mask).none()) {
 						stack.push_back(v_xw.at(k));
 						visited_v.at(k) = true;
 					}
@@ -254,7 +254,7 @@ void board<SIZE>::update_xwing() {
 						mask |= (bits)1<<b;
 					}
 					for (size_t l = 0; l < SIZE*SIZE; l++) {
-						if ((tmp&(bits)1<<(l*SIZE*SIZE)) != (bits)0) {
+						if ((tmp&(bits)1<<(l*SIZE*SIZE)).any()) {
 							a &= (mask << (l*SIZE*SIZE) | ~(horizontal_mask << (l*SIZE*SIZE)));
 						}
 					}
@@ -426,7 +426,7 @@ void board<SIZE>::show() const {
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		std::cout << "|";
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
-			int num = get(i * SIZE * SIZE + j);
+			int num = get(i*SIZE*SIZE + j);
 			if (num != -1) {
 				std::cout << " " << std::hex << num << " ";
 			} else {
@@ -530,7 +530,6 @@ size_t board<SIZE>::get_least_unstable() const {
 	int min = SIZE*SIZE;
 	size_t idx = -1;
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
-		// std::cerr << "at get_least_unstable " << tmp.at(i) << '\n';
 		if (tmp.at(i) > 1 && min > tmp.at(i)) {
 			min = tmp.at(i);
 			idx = i;
@@ -546,7 +545,7 @@ bool board<SIZE>::find_error() const {
 	for (const auto& a: candidates) {
 		tmp |= a;
 	}
-	return (~tmp) == 0;
+	return tmp.all();
 }
 
 } // namespace sudoku
