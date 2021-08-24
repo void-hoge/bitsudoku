@@ -426,7 +426,7 @@ void board<SIZE>::show() const {
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		std::cout << "|";
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
-			int num = get(i*SIZE*SIZE + j);
+			int num = get(i*SIZE*SIZE+j);
 			if (num != -1) {
 				std::cout << " " << std::hex << num << " ";
 			} else {
@@ -508,7 +508,6 @@ template<size_t SIZE>
 std::vector<int> board<SIZE>::get_settable_num(const size_t pos) {
 	std::vector<int> res;
 	for (size_t i = 0; i < candidates.size(); i++) {
-		// std::cerr << "at get_settable_num "<< i << " " << pos << '\n';
 		if (candidates.at(i)[pos]) {
 			res.push_back(i);
 		}
