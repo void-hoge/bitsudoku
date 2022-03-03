@@ -68,7 +68,7 @@ private:
 	void update_locked_candidate();
 	void update_naked_pair();
 public:
-	void update_naked_pair2();
+	void update_hidden_pair();
 	board();
 	void set(const size_t pos, const int num);
 	void erase_candidate(const size_t pos, const int num);

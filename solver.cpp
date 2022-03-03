@@ -25,9 +25,13 @@ void solver<SIZE>::solve(board<SIZE> bd, const bool full_search) {
 	try {
 		while (bd.update());
 	} catch (std::exception e){
+		bd.show();
+		bd.dump();
 		throw std::logic_error("invalid input (no solution)");
 	}
 	if (!bd.find_error()) {
+		bd.show();
+		bd.dump();
 		throw std::logic_error("invalid input (no solution)");
 	}
 	const auto blank = bd.get_blank();
@@ -50,6 +54,8 @@ void solver<SIZE>::solve(board<SIZE> bd, const bool full_search) {
 		}
 	}
 	if (!full_search) {
+		bd.show();
+		bd.dump();
 		throw std::logic_error("invalid input (no solution)");
 	}
 }

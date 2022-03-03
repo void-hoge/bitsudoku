@@ -92,10 +92,19 @@ bool board<SIZE>::update() {
 		stable_cells |= a;
 	}
 
+	// dump();
 	update_locked_candidate();
+	// std::cout << "after locked candidate" << '\n';
+	// dump();
 	update_xwing_double();
+	// std::cout << "after xwing double" << '\n';
+	// dump();
 	update_naked_pair();
-	// update_xwing();
+	// std::cout << "after naked pair" << '\n';
+	// dump();
+	update_hidden_pair();
+	// std::cout << "after hidden pair" << '\n';
+	// dump();
 
 	for (size_t i = 0; i < stable.size(); i++) {
 		stable.at(i) = candidates.at(i);
@@ -339,15 +348,72 @@ void board<SIZE>::update_naked_pair() {
 	}
 }
 
-template <size_t SIZE>
-void board<SIZE>::update_naked_pair2() {
-	std::array<unsigned, SIZE*SIZE*SIZE*SIZE> tmp;
-	for (auto&a: tmp) {
-		a = 0;
-	}
-	for (size_t i = 0; i < SIZE*SIZE; i++) {
-		for (size_t j = 0; j < SIZE*SIZE*SIZE*SIZE; j++) {
-			tmp.at(j) |= ((unsigned)1&candidates.at(i)[j])<<i;
+template<size_t SIZE>
+void board<SIZE>::update_hidden_pair() {
+	for (size_t p = 0; p < SIZE*SIZE; p++) {
+		size_t first;
+		bits mask = 0;
+		// horizontal
+		for (first = 0; first < SIZE*SIZE; first++) {
+			auto masked = this->candidates.at(first) & (this->horizontal_mask << (p*SIZE*SIZE));
+			if (masked.count() == 2) {
+				mask = masked;
+				break;
+			}
+		}
+		for (size_t i = first+1; i < SIZE*SIZE; i++) {
+			if ((this->candidates.at(i) & (this->horizontal_mask << (p*SIZE*SIZE))) == mask) {
+				for (size_t j = 0; j < SIZE*SIZE; j++) {
+					if (first == j || i == j) {
+						continue;
+					}
+					this->candidates.at(j) &= ~mask;
+				}
+				break;
+			}
+		}
+
+		// vertical
+		mask = 0;
+		for (first = 0; first < SIZE*SIZE; first++) {
+			auto masked = this->candidates.at(first) & (this->horizontal_mask << (p*SIZE*SIZE));
+			if (masked.count() == 2) {
+				mask = masked;
+				break;
+			}
+		}
+		for (size_t i = first+1; i < SIZE*SIZE; i++) {
+			if ((this->candidates.at(i) & (this->horizontal_mask << (p*SIZE*SIZE))) == mask) {
+				for (size_t j = 0; j < SIZE*SIZE; j++) {
+					if (first == j || i == j) {
+						continue;
+					}
+					this->candidates.at(j) &= ~mask;
+				}
+				break;
+			}
+		}
+
+		const size_t x = p/SIZE;
+		const size_t y = p%SIZE;
+		mask = 0;
+		for (first = 0; first < SIZE*SIZE; first++) {
+			auto masked = (this->candidates.at(first) & (this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE)));
+			if (masked.count() == 2) {
+				mask = masked;
+				break;
+			}
+		}
+		for (size_t i = first+1; i < SIZE*SIZE; i++) {
+			if ((this->candidates.at(i) & (this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE))) == mask) {
+				for (size_t j = 0; j < SIZE*SIZE; j++) {
+					if (first == j || i == j) {
+						continue;
+					}
+					this->candidates.at(j) &= ~mask;
+				}
+				break;
+			}
 		}
 	}
 }
@@ -463,12 +529,29 @@ void board<SIZE>::dump() const {
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
 			for (size_t k = 0; k < SIZE*SIZE; k++) {
-				std::cout << candidates.at(j)[i*SIZE*SIZE+k];
+				std::cout << this->candidates.at(j)[i*SIZE*SIZE+k];
 			}
 			std::cout << ' ';
 		}
 		std::cout << '\n';
 	}
+	// std::cout << "stable" << std::endl;
+	// for (size_t i = 0; i < SIZE*SIZE; i++) {
+	// 	std::cout << std::dec << i;
+	// 	for (size_t j = 0; j < SIZE*SIZE; j++) {
+	// 		std::cout << ' ';
+	// 	}
+	// }
+	// std::cout << '\n';
+	// for (size_t i = 0; i < SIZE*SIZE; i++) {
+	// 	for (size_t j = 0; j < SIZE*SIZE; j++) {
+	// 		for (size_t k = 0; k < SIZE*SIZE; k++) {
+	// 			std::cout << this->stable.at(j)[i*SIZE*SIZE+k];
+	// 		}
+	// 		std::cout << ' ';
+	// 	}
+	// 	std::cout << '\n';
+	// }
 }
 
 template<size_t SIZE>
