@@ -612,7 +612,7 @@ size_t board<SIZE>::get_least_unstable() const {
 		}
 	}
 	int min = SIZE*SIZE;
-	size_t idx = -1;
+	size_t idx = 0;
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
 		if (tmp.at(i) > 1 && min > tmp.at(i)) {
 			min = tmp.at(i);
