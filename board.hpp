@@ -67,8 +67,9 @@ private:
 	void update_xwing_double();
 	void update_locked_candidate();
 	void update_naked_pair();
+	bool recursive_find_hidden_subset(const bits& mask, const bits& subset, const int n, const int p);
+	void update_hidden_subset();
 public:
-	void update_hidden_pair();
 	board();
 	void set(const size_t pos, const int num);
 	void erase_candidate(const size_t pos, const int num);

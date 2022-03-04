@@ -11,7 +11,7 @@ int main(int argc, char const *argv[]) {
 	bd.set(4*9+1, 1);
 	bd.show();
 	bd.dump();
-	bd.update_hidden_pair();
+	bd.update_hidden_subset();
 	bd.dump();
 	return 0;
 }

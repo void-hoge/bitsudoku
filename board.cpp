@@ -91,19 +91,19 @@ bool board<SIZE>::update() {
 	for (const auto& a: stable) {
 		stable_cells |= a;
 	}
-
+	// std::cout << "before update" << '\n';
 	// dump();
 	update_locked_candidate();
-	// std::cout << "after locked candidate" << '\n';
+	// std::cout << "locked candidates" << '\n';
 	// dump();
 	update_xwing_double();
-	// std::cout << "after xwing double" << '\n';
+	// std::cout << "xwing" << '\n';
 	// dump();
 	update_naked_pair();
-	// std::cout << "after naked pair" << '\n';
+	// std::cout << "naked pair" << '\n';
 	// dump();
-	update_hidden_pair();
-	// std::cout << "after hidden pair" << '\n';
+	update_hidden_subset();
+	// std::cout << "hidden subset" << '\n';
 	// dump();
 
 	for (size_t i = 0; i < stable.size(); i++) {
@@ -349,70 +349,72 @@ void board<SIZE>::update_naked_pair() {
 }
 
 template<size_t SIZE>
-void board<SIZE>::update_hidden_pair() {
+bool board<SIZE>::recursive_find_hidden_subset(const bits& mask, const bits& subset, const int n, const int p) {
+	// subset: 一致を見つけるべきビット列 subsetの立っているビットはすべてmask内
+	// mask: 処理している部分を抜き出すためのマスク
+	// n: 現在のステップ数
+	// p: 直近に処理した場所、見つかった場所
+	if (p >= SIZE*SIZE) {
+		return false;
+	}
+	if (n == 0) {
+		for (size_t i = p+1; i < SIZE*SIZE; i++) {
+			this->candidates.at(i) &= ~subset;
+		}
+		return true;
+	}
+	for (size_t i = p+1; i < SIZE*SIZE; i++) {
+		if ((this->candidates.at(i) & mask) == subset) {
+			if (this->recursive_find_hidden_subset(mask, subset, n-1, i)) {
+				for (size_t j = p+1; j < i; j++) {
+					this->candidates.at(j) &= ~subset;
+				}
+				return true;
+			}
+			return false;
+		}
+	}
+	return false;
+}
+
+template<size_t SIZE>
+void board<SIZE>::update_hidden_subset() {
 	for (size_t p = 0; p < SIZE*SIZE; p++) {
-		size_t first;
-		bits mask = 0;
-		// horizontal
-		for (first = 0; first < SIZE*SIZE; first++) {
-			auto masked = this->candidates.at(first) & (this->horizontal_mask << (p*SIZE*SIZE));
-			if (masked.count() == 2) {
-				mask = masked;
-				break;
-			}
-		}
-		for (size_t i = first+1; i < SIZE*SIZE; i++) {
-			if ((this->candidates.at(i) & (this->horizontal_mask << (p*SIZE*SIZE))) == mask) {
-				for (size_t j = 0; j < SIZE*SIZE; j++) {
-					if (first == j || i == j) {
-						continue;
-					}
-					this->candidates.at(j) &= ~mask;
-				}
-				break;
-			}
-		}
-
-		// vertical
-		mask = 0;
-		for (first = 0; first < SIZE*SIZE; first++) {
-			auto masked = this->candidates.at(first) & (this->horizontal_mask << (p*SIZE*SIZE));
-			if (masked.count() == 2) {
-				mask = masked;
-				break;
-			}
-		}
-		for (size_t i = first+1; i < SIZE*SIZE; i++) {
-			if ((this->candidates.at(i) & (this->horizontal_mask << (p*SIZE*SIZE))) == mask) {
-				for (size_t j = 0; j < SIZE*SIZE; j++) {
-					if (first == j || i == j) {
-						continue;
-					}
-					this->candidates.at(j) &= ~mask;
-				}
-				break;
-			}
-		}
-
+		auto hmask = this->horizontal_mask << (p*SIZE*SIZE);
+		auto vmask = this->vertical_mask << p;
 		const size_t x = p/SIZE;
 		const size_t y = p%SIZE;
-		mask = 0;
-		for (first = 0; first < SIZE*SIZE; first++) {
-			auto masked = (this->candidates.at(first) & (this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE)));
-			if (masked.count() == 2) {
-				mask = masked;
-				break;
-			}
-		}
-		for (size_t i = first+1; i < SIZE*SIZE; i++) {
-			if ((this->candidates.at(i) & (this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE))) == mask) {
-				for (size_t j = 0; j < SIZE*SIZE; j++) {
-					if (first == j || i == j) {
-						continue;
+		auto bmask = this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE);
+		for (size_t c = 2; c <= SIZE; c++) {
+			for (size_t i = 0; i < SIZE*SIZE; i++) {
+				auto subset = this->candidates.at(i) & hmask;
+				if (subset.count() == c) {
+					if (this->recursive_find_hidden_subset(hmask, subset, c-1, i)) {
+						for (size_t j = 0; j < i; j++) {
+							this->candidates.at(j) &= ~subset;
+						}
 					}
-					this->candidates.at(j) &= ~mask;
 				}
-				break;
+			}
+			for (size_t i = 0; i < SIZE*SIZE; i++) {
+				auto subset = this->candidates.at(i) & vmask;
+				if (subset.count() == c) {
+					if (this->recursive_find_hidden_subset(vmask, subset, c-1, i)) {
+						for (size_t j = 0; j < i; j++) {
+							this->candidates.at(j) &= ~subset;
+						}
+					}
+				}
+			}
+			for (size_t i = 0; i < SIZE*SIZE; i++) {
+				auto subset = this->candidates.at(i) & bmask;
+				if (subset.count() == c) {
+					if (this->recursive_find_hidden_subset(bmask, subset, c-1, i)) {
+						for (size_t j = 0; j < i; j++) {
+							this->candidates.at(j) &= ~subset;
+						}
+					}
+				}
 			}
 		}
 	}

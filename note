@@ -7,6 +7,8 @@ pair
 	その行列ブロックにそのpairをマスクする
 triple
 	カウントが3のものを選んで比較する
+subset
+	カウントが2のものを登録
 
 naked subset
 pair
