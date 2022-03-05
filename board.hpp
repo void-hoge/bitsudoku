@@ -69,6 +69,8 @@ private:
 	void update_naked_pair();
 	bool recursive_find_hidden_subset(const bits& mask, const bits& subset, const int n, const int p);
 	void update_hidden_subset();
+	void recursive_find_naked_subset(const bits& current, const int c, const int n, const int p, std::array<int, SIZE>& visited);
+	void update_naked_subset(const size_t limit = SIZE);
 public:
 	board();
 	void set(const size_t pos, const int num);

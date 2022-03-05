@@ -99,7 +99,8 @@ bool board<SIZE>::update() {
 	update_xwing_double();
 	// std::cout << "xwing" << '\n';
 	// dump();
-	update_naked_pair();
+	// update_naked_pair();
+	update_naked_subset(2);
 	// std::cout << "naked pair" << '\n';
 	// dump();
 	update_hidden_subset();
@@ -349,6 +350,74 @@ void board<SIZE>::update_naked_pair() {
 }
 
 template<size_t SIZE>
+void board<SIZE>::recursive_find_naked_subset(const bits& current, const int c, const int n, const int p, std::array<int, SIZE>& visited) {
+	if (p >= SIZE*SIZE) {
+		return;
+	}
+	if (n == 0) {
+		auto tmp = current;
+		for (size_t i = p+1; i < SIZE*SIZE; i++) {
+			tmp &= ~this->candidates.at(i);
+		}
+		for (size_t p = 0; p < SIZE*SIZE; p++) {
+			const auto hmask = this->horizontal_mask << (p*SIZE*SIZE);
+			const auto vmask = this->vertical_mask << p;
+			const size_t x = p/SIZE;
+			const size_t y = p%SIZE;
+			const auto bmask = this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE);
+			if ((tmp & hmask).count() == c) {
+				// dump_bits(tmp & hmask, 9);
+				// dump();
+				for (int i = c-1; i >= 0; i--) {
+					// std::cout << "h: " << i << " " << visited.at(i) << '\n';
+					this->candidates.at(visited.at(i)) &= tmp | ~hmask;
+				}
+			}
+			if ((tmp & vmask).count() == c) {
+				// dump_bits(tmp & vmask, 9);
+				// dump();
+				for (int i = c-1; i >= 0; i--) {
+					// std::cout << "v: " << i << " " << visited.at(i) << '\n';
+					this->candidates.at(visited.at(i)) &= tmp | ~vmask;
+				}
+			}
+			if ((tmp & bmask).count() == c) {
+				// dump_bits(tmp & bmask, 9);
+				// dump();
+				for (int i = c-1; i >= 0; i--) {
+					// std::cout << "b: " << i << " " << visited.at(i) << '\n';
+					this->candidates.at(visited.at(i)) &= tmp | ~bmask;
+				}
+			}
+		}
+		return;
+	}
+	auto tmp = current;
+	for (size_t i = p+1; i < SIZE*SIZE; i++) {
+		// std::cout << "n: " << n << '\n';
+		visited.at(n-1) = i;
+		this->recursive_find_naked_subset(tmp&this->candidates.at(i), c, n-1, i, visited);
+		tmp &= ~this->candidates.at(i);
+	}
+}
+
+template<size_t SIZE>
+void board<SIZE>::update_naked_subset(const size_t limit) {
+	std::array<int, SIZE> visited;
+	for (auto& a: visited) {
+		a = -1;
+	}
+	for (size_t c = 2; c <= SIZE && c <= limit; c++) {
+		auto tmp = ~(bits)0;
+		for (size_t i = 0; i < SIZE*SIZE; i++) {
+			visited.at(c-1) = i;
+			this->recursive_find_naked_subset(tmp&this->candidates.at(i), c, c-1, i, visited);
+			tmp &= ~this->candidates.at(i);
+		}
+	}
+}
+
+template<size_t SIZE>
 bool board<SIZE>::recursive_find_hidden_subset(const bits& mask, const bits& subset, const int n, const int p) {
 	// subset: 一致を見つけるべきビット列 subsetの立っているビットはすべてmask内
 	// mask: 処理している部分を抜き出すためのマスク
@@ -377,14 +446,15 @@ bool board<SIZE>::recursive_find_hidden_subset(const bits& mask, const bits& sub
 	return false;
 }
 
+// O(SIZE^6~7)
 template<size_t SIZE>
 void board<SIZE>::update_hidden_subset() {
 	for (size_t p = 0; p < SIZE*SIZE; p++) {
-		auto hmask = this->horizontal_mask << (p*SIZE*SIZE);
-		auto vmask = this->vertical_mask << p;
+		const auto hmask = this->horizontal_mask << (p*SIZE*SIZE);
+		const auto vmask = this->vertical_mask << p;
 		const size_t x = p/SIZE;
 		const size_t y = p%SIZE;
-		auto bmask = this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE);
+		const auto bmask = this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE);
 		for (size_t c = 2; c <= SIZE; c++) {
 			for (size_t i = 0; i < SIZE*SIZE; i++) {
 				auto subset = this->candidates.at(i) & hmask;
