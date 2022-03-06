@@ -100,7 +100,7 @@ bool board<SIZE>::update() {
 	// std::cout << "xwing" << '\n';
 	// dump();
 	// update_naked_pair();
-	update_naked_subset(2);
+	update_naked_subset();
 	// std::cout << "naked pair" << '\n';
 	// dump();
 	update_hidden_subset();
@@ -350,69 +350,137 @@ void board<SIZE>::update_naked_pair() {
 }
 
 template<size_t SIZE>
-void board<SIZE>::recursive_find_naked_subset(const bits& current, const int c, const int n, const int p, std::array<int, SIZE>& visited) {
-	if (p >= SIZE*SIZE) {
-		return;
+bool board<SIZE>::recursive_find_horizontal_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+	if (target/(SIZE*SIZE) != previous/(SIZE*SIZE)) {
+		return false;
 	}
 	if (n == 0) {
-		auto tmp = current;
-		for (size_t i = p+1; i < SIZE*SIZE; i++) {
-			tmp &= ~this->candidates.at(i);
+		const size_t x = previous/(SIZE*SIZE);
+		for (const auto n: expand) {
+			this->candidates.at(n) &= ~(this->horizontal_mask<<(x*SIZE*SIZE));
+			this->candidates.at(n)[previous] = 1;
 		}
-		for (size_t p = 0; p < SIZE*SIZE; p++) {
-			const auto hmask = this->horizontal_mask << (p*SIZE*SIZE);
-			const auto vmask = this->vertical_mask << p;
-			const size_t x = p/SIZE;
-			const size_t y = p%SIZE;
-			const auto bmask = this->block_mask << (x*SIZE*SIZE*SIZE + y*SIZE);
-			if ((tmp & hmask).count() == c) {
-				// dump_bits(tmp & hmask, 9);
-				// dump();
-				for (int i = c-1; i >= 0; i--) {
-					// std::cout << "h: " << i << " " << visited.at(i) << '\n';
-					this->candidates.at(visited.at(i)) &= tmp | ~hmask;
+		return true;
+	}
+	for (size_t i = previous+1; i%(SIZE*SIZE) != 0; i++) {
+		if (grid_candidates.at(target) == grid_candidates.at(i)) {
+			if (this->recursive_find_horizontal_naked_subset(grid_candidates, target, expand, i, n-1)) {
+				for (const auto n: expand) {
+					this->candidates.at(n)[previous] = 1;
 				}
-			}
-			if ((tmp & vmask).count() == c) {
-				// dump_bits(tmp & vmask, 9);
-				// dump();
-				for (int i = c-1; i >= 0; i--) {
-					// std::cout << "v: " << i << " " << visited.at(i) << '\n';
-					this->candidates.at(visited.at(i)) &= tmp | ~vmask;
-				}
-			}
-			if ((tmp & bmask).count() == c) {
-				// dump_bits(tmp & bmask, 9);
-				// dump();
-				for (int i = c-1; i >= 0; i--) {
-					// std::cout << "b: " << i << " " << visited.at(i) << '\n';
-					this->candidates.at(visited.at(i)) &= tmp | ~bmask;
-				}
+				return true;
 			}
 		}
-		return;
 	}
-	auto tmp = current;
-	for (size_t i = p+1; i < SIZE*SIZE; i++) {
-		// std::cout << "n: " << n << '\n';
-		visited.at(n-1) = i;
-		this->recursive_find_naked_subset(tmp&this->candidates.at(i), c, n-1, i, visited);
-		tmp &= ~this->candidates.at(i);
+	return false;
+}
+
+template<size_t SIZE>
+bool board<SIZE>::recursive_find_vertical_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+	if (target%(SIZE*SIZE) != previous%(SIZE*SIZE)) {
+		return false;
 	}
+	if (n == 0) {
+		const size_t y = previous%(SIZE*SIZE);
+		for (const auto n: expand) {
+			this->candidates.at(n) &= ~(this->vertical_mask<<y);
+			this->candidates.at(n)[previous] = 1;
+		}
+		return true;
+	}
+	for (size_t i = previous+SIZE*SIZE; i < SIZE*SIZE*SIZE*SIZE; i+=SIZE*SIZE) {
+		if (grid_candidates.at(target) == grid_candidates.at(i)) {
+			if (this->recursive_find_vertical_naked_subset(grid_candidates, target, expand, i, n-1)) {
+				for (const auto n: expand) {
+					this->candidates.at(n)[previous] = 1;
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+template<size_t SIZE>
+bool board<SIZE>::recursive_find_block_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+	const size_t x_t = target/(SIZE*SIZE);
+	const size_t y_t = target%(SIZE*SIZE);
+	const size_t bx_t = x_t/SIZE;
+	const size_t by_t = y_t/SIZE;
+
+	const size_t x_p = previous/(SIZE*SIZE);
+	const size_t y_p = previous%(SIZE*SIZE);
+	const size_t bx_p = x_p/SIZE;
+	const size_t by_p = y_p/SIZE;
+
+	auto advance = [](size_t pos) {
+		auto tmp = pos;
+		pos++;
+		if ((tmp/SIZE) != (pos/SIZE)) {
+			pos += SIZE*SIZE;
+			pos -= SIZE;
+		}
+		return pos;
+	};
+
+	auto blockid = [](size_t pos) {
+		size_t x = pos/(SIZE*SIZE);
+		size_t y = pos%(SIZE*SIZE);
+		size_t bx = x/SIZE;
+		size_t by = y/SIZE;
+		return bx*SIZE+by;
+	};
+
+	if (blockid(target) != blockid(previous)) {
+		return false;
+	}
+	if (n == 0) {
+		for (const auto n: expand) {
+			this->candidates.at(n) &= ~(this->block_mask<<(bx_p*SIZE*SIZE*SIZE + by_p*SIZE));
+			this->candidates.at(n)[previous] = 1;
+		}
+		return true;
+	}
+	for (size_t i = advance(previous); blockid(previous) == blockid(i); i = advance(i)) {
+		if (grid_candidates.at(target) == grid_candidates.at(i)) {
+			if (this->recursive_find_block_naked_subset(grid_candidates, target, expand, i, n-1)) {
+				for (const auto n: expand) {
+					this->candidates.at(n)[previous] = 1;
+				}
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 template<size_t SIZE>
 void board<SIZE>::update_naked_subset(const size_t limit) {
-	std::array<int, SIZE> visited;
-	for (auto& a: visited) {
-		a = -1;
+	std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE> grid_candidates;
+	std::array<uint8_t, SIZE*SIZE*SIZE*SIZE> grid_candidates_num;
+	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
+		grid_candidates_num.at(i) = 0;
+		grid_candidates.at(i) = 0;
+	}
+	for (size_t i = 0; i < SIZE*SIZE; i++) {
+		for (size_t p = 0; p < SIZE*SIZE*SIZE*SIZE; p++) {
+			grid_candidates.at(p)[i] = candidates.at(i)[p];
+			grid_candidates_num.at(p) += candidates.at(i)[p];
+		}
 	}
 	for (size_t c = 2; c <= SIZE && c <= limit; c++) {
-		auto tmp = ~(bits)0;
-		for (size_t i = 0; i < SIZE*SIZE; i++) {
-			visited.at(c-1) = i;
-			this->recursive_find_naked_subset(tmp&this->candidates.at(i), c, c-1, i, visited);
-			tmp &= ~this->candidates.at(i);
+		for (size_t p = 0; p < SIZE*SIZE*SIZE*SIZE; p++) {
+			if (grid_candidates_num.at(p) == c) {
+				std::vector<int> expand;
+				for (size_t i = 0; i < SIZE*SIZE; i++) {
+					if (grid_candidates.at(p)[i]) {
+						expand.push_back(i);
+					}
+				}
+				this->recursive_find_horizontal_naked_subset(grid_candidates, p, expand, p, c-1);
+				this->recursive_find_vertical_naked_subset(grid_candidates, p, expand, p, c-1);
+				this->recursive_find_block_naked_subset(grid_candidates, p, expand, p, c-1);
+			}
 		}
 	}
 }

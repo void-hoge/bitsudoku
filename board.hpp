@@ -70,6 +70,9 @@ private:
 	bool recursive_find_hidden_subset(const bits& mask, const bits& subset, const int n, const int p);
 	void update_hidden_subset();
 	void recursive_find_naked_subset(const bits& current, const int c, const int n, const int p, std::array<int, SIZE>& visited);
+	bool recursive_find_block_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n);
+	bool recursive_find_horizontal_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n);
+	bool recursive_find_vertical_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n);
 	void update_naked_subset(const size_t limit = SIZE);
 public:
 	board();
