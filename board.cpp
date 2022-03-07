@@ -13,6 +13,7 @@ namespace sudoku {
 
 template<size_t SIZE>
 void board<SIZE>::set(const size_t pos, const int num) {
+	// Sets the number num at the position pos.
 	if (pos >= SIZE*SIZE*SIZE*SIZE) {
 		throw std::out_of_range(std::string("in function void board::set(pos, num): pos out of range. pos: ")+std::to_string(pos)+", num: "+std::to_string(num));
 	}
@@ -24,39 +25,42 @@ void board<SIZE>::set(const size_t pos, const int num) {
 	const int y = pos%(SIZE*SIZE);
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		if (i == num) {
-			candidates.at(i) &= ~(vertical_mask<<y);
-			candidates.at(i) &= ~(horizontal_mask<<(x*SIZE*SIZE));
-			candidates.at(i) &= ~(block_mask<<((y/SIZE)*SIZE + (x/SIZE)*SIZE*SIZE*SIZE));
-			candidates.at(i)[pos] = true;
+			this->candidates.at(i) &= ~(this->vertical_mask<<y);
+			this->candidates.at(i) &= ~(this->horizontal_mask<<(x*SIZE*SIZE));
+			this->candidates.at(i) &= ~(this->block_mask<<((y/SIZE)*SIZE + (x/SIZE)*SIZE*SIZE*SIZE));
+			this->candidates.at(i)[pos] = true;
 		}else {
-			candidates.at(i)[pos] = false;
+			this->candidates.at(i)[pos] = false;
 		}
 	}
 }
 
 template<size_t SIZE>
 void board<SIZE>::erase_candidate(const size_t pos, const int num) {
+	// Erases the bit of candidates at poosition pos.
 	if (pos >= SIZE*SIZE*SIZE*SIZE) {
 		throw std::out_of_range("in function void board::erase_candidate(pos, num): pos out of range.");
 	}
 	if (num < 0 || num >= SIZE*SIZE) {
 		throw std::logic_error("in function void board::erase_candidate(pos, num): num out of range.");
 	}
-	candidates.at(num)[pos] = false;
+	this->candidates.at(num)[pos] = false;
 }
 
 template<size_t SIZE>
 void board<SIZE>::erase_stable(const size_t pos) {
+	// Erases the bit at position pos of this->stable when it become not stable.
 	if (pos >= SIZE*SIZE*SIZE*SIZE) {
 		throw std::out_of_range("in function void board::erase_candidate(pos, num): pos out of range.");
 	}
-	for (auto&a: stable) {
+	for (auto&a: this->stable) {
 		a[pos] = false;
 	}
 }
 
 template<size_t SIZE>
 void board<SIZE>::build_candidates() {
+	// Updates the this->candidates using this->stable.
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
 		try {
 			set(i, get(i));
@@ -66,8 +70,9 @@ void board<SIZE>::build_candidates() {
 
 template<size_t SIZE>
 int board<SIZE>::get(const size_t pos) const {
-	for (size_t i = 0; i < stable.size(); i++) {
-		if (stable.at(i)[pos] == 1) {
+	// Returns the number at the position pos by referencing the this->stable.
+	for (size_t i = 0; i < this->stable.size(); i++) {
+		if (this->stable.at(i)[pos] == 1) {
 			return i;
 		}
 	}
@@ -76,19 +81,21 @@ int board<SIZE>::get(const size_t pos) const {
 
 template<size_t SIZE>
 size_t board<SIZE>::count_candidates() const {
+	// Returns the number of candidates.
 	size_t count = 0;
-	for (const auto& a: candidates) {
-		count += a.count();
+	for (const auto& cand: this->candidates) {
+		count += cand.count();
 	}
 	return count;
 }
 
 template<size_t SIZE>
 bool board<SIZE>::update() {
-	auto before = count_candidates();
+	// Erases candidates using solving techniques.
+	auto before = this->count_candidates();
 
 	bits stable_cells = 0;
-	for (const auto& a: stable) {
+	for (const auto& a: this->stable) {
 		stable_cells |= a;
 	}
 	// std::cout << "before update" << '\n';
@@ -107,36 +114,36 @@ bool board<SIZE>::update() {
 	// std::cout << "hidden subset" << '\n';
 	// dump();
 
-	for (size_t i = 0; i < stable.size(); i++) {
-		stable.at(i) = candidates.at(i);
-		for (size_t j = 0; j < candidates.size(); j++) {
+	for (size_t i = 0; i < this->stable.size(); i++) {
+		this->stable.at(i) = this->candidates.at(i);
+		for (size_t j = 0; j < this->candidates.size(); j++) {
 			if (i == j) {
 				continue;
 			}else {
-				stable.at(i) &= ~candidates.at(j);
+				this->stable.at(i) &= ~this->candidates.at(j);
 			}
 		}
 	}
 
-	for (size_t i = 0; i < candidates.size(); i++) {
+	for (size_t i = 0; i < this->candidates.size(); i++) {
 		for (size_t x = 0; x < SIZE; x++) {
 			for (size_t y = 0; y < SIZE; y++) {
-				if ((candidates.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE)).count() == 1) {
-					stable.at(i) |= candidates.at(i) & block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
+				if ((this->candidates.at(i) & this->block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE)).count() == 1) {
+					this->stable.at(i) |= this->candidates.at(i) & this->block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
 				}
 			}
 		}
 	}
 
 	bits new_stable_cells = 0;
-	for (const auto& a: stable) {
+	for (const auto& a: this->stable) {
 		new_stable_cells |= a;
 	}
 	new_stable_cells ^= stable_cells;
 
 	for (size_t i = 0; i < new_stable_cells.size(); i++) {
 		if (new_stable_cells[i]) {
-			set(i, get(i));
+			this->set(i, get(i));
 		}
 	}
 
@@ -147,14 +154,14 @@ bool board<SIZE>::update() {
 template<size_t SIZE>
 void board<SIZE>::update_xwing_double() {
 	// X-wing
-	for (auto& a: candidates) {
+	for (auto& cand: this->candidates) {
 		std::vector<size_t> h_xw;
 		std::vector<size_t> v_xw;
 		for (size_t i = 0; i < SIZE*SIZE; i++) {
-			if ((a&(horizontal_mask<<(i*SIZE*SIZE))).count() == 2) {
+			if ((cand&(this->horizontal_mask<<(i*SIZE*SIZE))).count() == 2) {
 				h_xw.push_back(i);
 			}
-			if ((a&(vertical_mask<<i)).count() == 2) {
+			if ((cand&(this->vertical_mask<<i)).count() == 2) {
 				v_xw.push_back(i);
 			}
 		}
@@ -162,13 +169,12 @@ void board<SIZE>::update_xwing_double() {
 		// horizontal
 		for (size_t j = 0; j < h_xw.size(); j++) {
 			for (size_t k = j+1; k < h_xw.size(); k++) {
-				if ((((a>>h_xw.at(j)*SIZE*SIZE)^
-				(a>>h_xw.at(k)*SIZE*SIZE))&horizontal_mask) == (bits)0) {
-					auto tmp = (a>>h_xw.at(j)*SIZE*SIZE)&horizontal_mask;
+				if ((((cand>>h_xw.at(j)*SIZE*SIZE)^(cand>>h_xw.at(k)*SIZE*SIZE))&this->horizontal_mask) == (bits)0) {
+					auto tmp = (cand>>h_xw.at(j)*SIZE*SIZE)&this->horizontal_mask;
 					auto mask = (bits)1<<(h_xw.at(j)*SIZE*SIZE) | (bits)1<<(h_xw.at(k)*SIZE*SIZE);
 					for (size_t l = 0; l < SIZE*SIZE; l++) {
 						if ((tmp&(bits)1<<l) != (bits)0) {
-							a &= (mask << l | ~(vertical_mask << l));
+							cand &= (mask << l | ~(this->vertical_mask << l));
 						}
 					}
 				}
@@ -178,13 +184,12 @@ void board<SIZE>::update_xwing_double() {
 		// vertical
 		for (size_t j = 0; j < v_xw.size(); j++) {
 			for (size_t k = j+1; k < v_xw.size(); k++) {
-				if ((((a>>v_xw.at(j))^
-				(a>>v_xw.at(k)))&vertical_mask) == (bits)0) {
-					auto tmp = (a>>v_xw.at(j))&vertical_mask;
+				if ((((cand>>v_xw.at(j))^(cand>>v_xw.at(k)))&this->vertical_mask) == (bits)0) {
+					auto tmp = (cand>>v_xw.at(j))&this->vertical_mask;
 					auto mask = (bits)1<<(v_xw.at(j)) | (bits)1<<v_xw.at(k);
 					for (size_t l = 0; l < SIZE*SIZE; l++) {
 						if ((tmp&(bits)1<<(l*SIZE*SIZE)) != (bits)0) {
-							a &= (mask << (l*SIZE*SIZE) | ~(horizontal_mask << (l*SIZE*SIZE)));
+							cand &= (mask << (l*SIZE*SIZE) | ~(this->horizontal_mask << (l*SIZE*SIZE)));
 						}
 					}
 				}
@@ -195,15 +200,15 @@ void board<SIZE>::update_xwing_double() {
 
 template<size_t SIZE>
 void board<SIZE>::update_xwing() {
-	for (auto&a: candidates) {
+	for (auto&cand: this->candidates) {
 		for (size_t i = 2; i < SIZE; i++) {
 			std::vector<size_t> h_xw;
 			std::vector<size_t> v_xw;
 			for (size_t j = 0; j < SIZE*SIZE; j++) {
-				if ((a&(horizontal_mask<<(j*SIZE*SIZE))).count() == i) {
+				if ((cand&(this->horizontal_mask<<(j*SIZE*SIZE))).count() == i) {
 					h_xw.push_back(j);
 				}
-				if ((a&(vertical_mask<<j)).count() == i) {
+				if ((cand&(this->vertical_mask<<j)).count() == i) {
 					v_xw.push_back(j);
 				}
 			}
@@ -225,20 +230,20 @@ void board<SIZE>::update_xwing() {
 				std::vector<size_t> stack;
 				stack.push_back(h_xw.at(j));
 				for (size_t k = j+1; k < h_xw.size(); k++) {
-					if ((((a>>h_xw.at(j)*SIZE*SIZE)^(a>>h_xw.at(k)*SIZE*SIZE))&horizontal_mask) == (bits)0) {
+					if ((((cand>>h_xw.at(j)*SIZE*SIZE)^(cand>>h_xw.at(k)*SIZE*SIZE))&this->horizontal_mask) == (bits)0) {
 						stack.push_back(h_xw.at(k));
 						visited_h.at(k) = true;
 					}
 				}
 				if (stack.size() == i) {
-					auto tmp = (a>>stack.at(0)*SIZE*SIZE)&horizontal_mask;
+					auto tmp = (cand>>stack.at(0)*SIZE*SIZE)&this->horizontal_mask;
 					bits mask = 0;
 					for (auto b: stack) {
 						mask |= (bits)1<<(b*SIZE*SIZE);
 					}
 					for (size_t l = 0; l < SIZE*SIZE; l++) {
 						if ((tmp&(bits)1<<l) != (bits)0) {
-							a &= (mask << l | ~(vertical_mask << l));
+							cand &= (mask << l | ~(this->vertical_mask << l));
 						}
 					}
 				}
@@ -252,20 +257,20 @@ void board<SIZE>::update_xwing() {
 				std::vector<size_t> stack;
 				stack.push_back(v_xw.at(j));
 				for (size_t k = j+1; k < v_xw.size(); k++) {
-					if ((((a>>v_xw.at(j))^(a>>v_xw.at(k)))&vertical_mask).none()) {
+					if ((((cand>>v_xw.at(j))^(cand>>v_xw.at(k)))&this->vertical_mask).none()) {
 						stack.push_back(v_xw.at(k));
 						visited_v.at(k) = true;
 					}
 				}
 				if (stack.size() == i) {
-					auto tmp = (a>>stack.at(0))&vertical_mask;
+					auto tmp = (cand>>stack.at(0))&this->vertical_mask;
 					bits mask = 0;
 					for (auto b: stack) {
 						mask |= (bits)1<<b;
 					}
 					for (size_t l = 0; l < SIZE*SIZE; l++) {
 						if ((tmp&(bits)1<<(l*SIZE*SIZE)).any()) {
-							a &= (mask << (l*SIZE*SIZE) | ~(horizontal_mask << (l*SIZE*SIZE)));
+							cand &= (mask << (l*SIZE*SIZE) | ~(this->horizontal_mask << (l*SIZE*SIZE)));
 						}
 					}
 				}
@@ -276,33 +281,33 @@ void board<SIZE>::update_xwing() {
 
 template<size_t SIZE>
 void board<SIZE>::update_locked_candidate() {
-	for (auto &a: candidates) {
+	for (auto &cand: this->candidates) {
 		for (size_t x = 0; x < SIZE; x++) {
 			for (size_t y = 0; y < SIZE; y++) {
-				auto masked = a&block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
+				auto masked = cand&this->block_mask<<(y*SIZE + x*SIZE*SIZE*SIZE);
 				for (size_t i = x*SIZE; i < (x+1)*SIZE; i++) {
-					if (masked == (masked&(horizontal_mask<<(i*SIZE*SIZE)))) {
-						a &= masked|~(horizontal_mask<<(i*SIZE*SIZE));
+					if (masked == (masked&(this->horizontal_mask<<(i*SIZE*SIZE)))) {
+						cand &= masked|~(this->horizontal_mask<<(i*SIZE*SIZE));
 					}
 				}
 				for (size_t i = y*SIZE; i < (y+1)*SIZE; i++) {
-					if (masked == (masked&vertical_mask<<i)) {
-						a &= masked|~(vertical_mask<<i);
+					if (masked == (masked&this->vertical_mask<<i)) {
+						cand &= masked|~(this->vertical_mask<<i);
 					}
 				}
 			}
 		}
 		for (size_t i = 0; i < SIZE*SIZE; i++) {
-			auto masked_h = a&horizontal_mask<<(i*SIZE*SIZE);
-			auto masked_v = a&vertical_mask<<i;
+			auto masked_h = cand&this->horizontal_mask<<(i*SIZE*SIZE);
+			auto masked_v = cand&this->vertical_mask<<i;
 			for (size_t j = 0; j < SIZE; j++) {
 				// horizontal
-				if (masked_h == (masked_h&(block_mask<<((i/SIZE)*SIZE*SIZE*SIZE + j*SIZE)))) {
-					a &= masked_h|~(block_mask<<((i/SIZE)*SIZE*SIZE*SIZE + j*SIZE));
+				if (masked_h == (masked_h&(this->block_mask<<((i/SIZE)*SIZE*SIZE*SIZE + j*SIZE)))) {
+					cand &= masked_h|~(this->block_mask<<((i/SIZE)*SIZE*SIZE*SIZE + j*SIZE));
 				}
 				// vertical
-				if (masked_v == (masked_v&(block_mask<<(j*SIZE*SIZE*SIZE + (i/SIZE)*SIZE)))) {
-					a &= masked_v|~(block_mask<<(j*SIZE*SIZE*SIZE + (i/SIZE)*SIZE));
+				if (masked_v == (masked_v&(this->block_mask<<(j*SIZE*SIZE*SIZE + (i/SIZE)*SIZE)))) {
+					cand &= masked_v|~(this->block_mask<<(j*SIZE*SIZE*SIZE + (i/SIZE)*SIZE));
 				}
 			}
 		}
@@ -313,36 +318,36 @@ template<size_t	SIZE>
 void board<SIZE>::update_naked_pair() {
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		for (size_t j = i+1; j < SIZE*SIZE; j++) {
-			auto pair = candidates.at(i) & candidates.at(j);
+			auto pair = this->candidates.at(i) & this->candidates.at(j);
 			for (size_t k = 0; k < SIZE*SIZE; k++) {
 				if (i != k && j != k) {
-					pair &= ~candidates.at(k);
+					pair &= ~this->candidates.at(k);
 				}
 			}
-			bits mask_h = horizontal_mask;
-			bits mask_v = vertical_mask;
+			bits mask_h = this->horizontal_mask;
+			bits mask_v = this->vertical_mask;
 			for (size_t k = 0; k < SIZE*SIZE; k++) {
 				bits tmp_h = pair&mask_h;
 				if (tmp_h.count() == 2) {
-					candidates.at(i) &= tmp_h |~mask_h;
-					candidates.at(j) &= tmp_h |~mask_h;
+					this->candidates.at(i) &= tmp_h |~mask_h;
+					this->candidates.at(j) &= tmp_h |~mask_h;
 				}
 				mask_h <<= SIZE*SIZE;
 
 				bits tmp_v = pair&mask_v;
 				if (tmp_v.count() == 2) {
-					candidates.at(i) &= tmp_v |~mask_v;
-					candidates.at(j) &= tmp_v |~mask_v;
+					this->candidates.at(i) &= tmp_v |~mask_v;
+					this->candidates.at(j) &= tmp_v |~mask_v;
 				}
 				mask_v <<= 1;
 
 				size_t x = k/SIZE;
 			 	size_t y = k%SIZE;
-				bits mask_b = block_mask<<(x*SIZE*SIZE*SIZE + y*SIZE);
+				bits mask_b = this->block_mask<<(x*SIZE*SIZE*SIZE + y*SIZE);
 				bits tmp_b = pair&mask_b;
 				if (tmp_b.count() == 2) {
-					candidates.at(i) &= tmp_b |~mask_b;
-					candidates.at(j) &= tmp_b |~mask_b;
+					this->candidates.at(i) &= tmp_b |~mask_b;
+					this->candidates.at(j) &= tmp_b |~mask_b;
 				}
 			}
 		}
@@ -350,7 +355,8 @@ void board<SIZE>::update_naked_pair() {
 }
 
 template<size_t SIZE>
-bool board<SIZE>::recursive_find_horizontal_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+bool board<SIZE>::recursive_find_horizontal_naked_subset(const std::array<cell, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+	// a method for update_naked_subset()
 	if (target/(SIZE*SIZE) != previous/(SIZE*SIZE)) {
 		return false;
 	}
@@ -376,7 +382,8 @@ bool board<SIZE>::recursive_find_horizontal_naked_subset(const std::array<std::b
 }
 
 template<size_t SIZE>
-bool board<SIZE>::recursive_find_vertical_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+bool board<SIZE>::recursive_find_vertical_naked_subset(const std::array<cell, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+	// a method for update_naked_subset()
 	if (target%(SIZE*SIZE) != previous%(SIZE*SIZE)) {
 		return false;
 	}
@@ -402,7 +409,8 @@ bool board<SIZE>::recursive_find_vertical_naked_subset(const std::array<std::bit
 }
 
 template<size_t SIZE>
-bool board<SIZE>::recursive_find_block_naked_subset(const std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+bool board<SIZE>::recursive_find_block_naked_subset(const std::array<cell, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+	// a method for update_naked_subset()
 	const size_t x_t = target/(SIZE*SIZE);
 	const size_t y_t = target%(SIZE*SIZE);
 	const size_t bx_t = x_t/SIZE;
@@ -456,7 +464,7 @@ bool board<SIZE>::recursive_find_block_naked_subset(const std::array<std::bitset
 
 template<size_t SIZE>
 void board<SIZE>::update_naked_subset(const size_t limit) {
-	std::array<std::bitset<SIZE*SIZE>, SIZE*SIZE*SIZE*SIZE> grid_candidates;
+	std::array<cell, SIZE*SIZE*SIZE*SIZE> grid_candidates;
 	std::array<uint8_t, SIZE*SIZE*SIZE*SIZE> grid_candidates_num;
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
 		grid_candidates_num.at(i) = 0;
@@ -487,10 +495,6 @@ void board<SIZE>::update_naked_subset(const size_t limit) {
 
 template<size_t SIZE>
 bool board<SIZE>::recursive_find_hidden_subset(const bits& mask, const bits& subset, const int n, const int p) {
-	// subset: 一致を見つけるべきビット列 subsetの立っているビットはすべてmask内
-	// mask: 処理している部分を抜き出すためのマスク
-	// n: 現在のステップ数
-	// p: 直近に処理した場所、見つかった場所
 	if (p >= SIZE*SIZE) {
 		return false;
 	}
@@ -560,12 +564,12 @@ void board<SIZE>::update_hidden_subset() {
 
 template<size_t SIZE>
 board<SIZE>::board() {
-	for (auto &a: candidates) {
-		a = 0;
-		a.flip();
+	for (auto &cand: this->candidates) {
+		cand = 0;
+		cand.flip();
 	}
-	for (auto &a: stable) {
-		a = 0;
+	for (auto &cand: this->stable) {
+		cand = 0;
 	}
 }
 
@@ -578,7 +582,7 @@ void board<SIZE>::vector_input(const std::vector<int>& q) {
 		if (q.at(i) == 0) {
 			continue;
 		}else {
-			set(i, q.at(i)-1);
+			this->set(i, q.at(i)-1);
 		}
 	}
 }
@@ -591,7 +595,7 @@ void board<SIZE>::cin_input() {
 		if (tmp == 0) {
 			continue;
 		}else {
-			set(i, tmp-1);
+			this->set(i, tmp-1);
 		}
 	}
 }
@@ -608,7 +612,7 @@ void board<SIZE>::string_input(const std::string& q) {
 		}else {
 			try {
 				int num = std::stoi(tmp);
-				set(pos, num-1);
+				this->set(pos, num-1);
 			} catch (std::invalid_argument e) {
 				std::cout << e.what() << ", input: " << tmp << ", pos: " << pos << '\n';
 			}
@@ -632,7 +636,7 @@ void board<SIZE>::show() const {
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		std::cout << "|";
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
-			int num = get(i*SIZE*SIZE+j);
+			int num = this->get(i*SIZE*SIZE+j);
 			if (num != -1) {
 				std::cout << " " << std::hex << num << " ";
 			} else {
@@ -675,30 +679,13 @@ void board<SIZE>::dump() const {
 		}
 		std::cout << '\n';
 	}
-	// std::cout << "stable" << std::endl;
-	// for (size_t i = 0; i < SIZE*SIZE; i++) {
-	// 	std::cout << std::dec << i;
-	// 	for (size_t j = 0; j < SIZE*SIZE; j++) {
-	// 		std::cout << ' ';
-	// 	}
-	// }
-	// std::cout << '\n';
-	// for (size_t i = 0; i < SIZE*SIZE; i++) {
-	// 	for (size_t j = 0; j < SIZE*SIZE; j++) {
-	// 		for (size_t k = 0; k < SIZE*SIZE; k++) {
-	// 			std::cout << this->stable.at(j)[i*SIZE*SIZE+k];
-	// 		}
-	// 		std::cout << ' ';
-	// 	}
-	// 	std::cout << '\n';
-	// }
 }
 
 template<size_t SIZE>
 std::string board<SIZE>::string_output() const {
 	std::string result;
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
-		auto tmp = get(i);
+		auto tmp = this->get(i);
 		if (tmp == -1) {
 			result += "- ";
 		}else {
@@ -711,8 +698,9 @@ std::string board<SIZE>::string_output() const {
 
 template<size_t SIZE>
 size_t board<SIZE>::stable_count() const {
+	// Returns the number of stable cells.
 	bits tmp = 0;
-	for (const auto& a: stable) {
+	for (const auto& a: this->stable) {
 		tmp |= a;
 	}
 	return tmp.count();
@@ -720,8 +708,9 @@ size_t board<SIZE>::stable_count() const {
 
 template<size_t SIZE>
 std::bitset<SIZE*SIZE*SIZE*SIZE> board<SIZE>::get_blank() const {
+	// Returns the bitset of blank.
 	bits tmp = 0;
-	for (const auto& a: stable) {
+	for (const auto& a: this->stable) {
 		tmp |= a;
 	}
 	return ~tmp;
@@ -729,9 +718,10 @@ std::bitset<SIZE*SIZE*SIZE*SIZE> board<SIZE>::get_blank() const {
 
 template<size_t SIZE>
 std::vector<int> board<SIZE>::get_settable_num(const size_t pos) {
+	// Returns the vector of numbers which can be set on the position pos.
 	std::vector<int> res;
-	for (size_t i = 0; i < candidates.size(); i++) {
-		if (candidates.at(i)[pos]) {
+	for (size_t i = 0; i < this->candidates.size(); i++) {
+		if (this->candidates.at(i)[pos]) {
 			res.push_back(i);
 		}
 	}
@@ -740,13 +730,14 @@ std::vector<int> board<SIZE>::get_settable_num(const size_t pos) {
 
 template<size_t SIZE>
 size_t board<SIZE>::get_least_unstable() const {
+	// Returns the position of the square with the fewest candidates.
 	std::array<int, SIZE*SIZE*SIZE*SIZE> tmp;
 	for (auto&a: tmp) {
 		a = 0;
 	}
-	for (const auto&a: candidates) {
+	for (const auto&cand: this->candidates) {
 		for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
-			tmp.at(i) += a[i];
+			tmp.at(i) += cand[i];
 		}
 	}
 	int min = SIZE*SIZE;
@@ -757,17 +748,37 @@ size_t board<SIZE>::get_least_unstable() const {
 			idx = i;
 		}
 	}
-	return (size_t)idx;
+	return idx;
 }
 
 template<size_t SIZE>
 bool board<SIZE>::find_error() const {
+	// Detects that the problem cannot be solved.
 	// error -> false, no error -> true
 	bits tmp = 0;
-	for (const auto& a: candidates) {
-		tmp |= a;
+	for (const auto& cand: this->candidates) {
+		tmp |= cand;
 	}
 	return tmp.all();
+}
+
+template<size_t  SIZE>
+size_t board<SIZE>::get_unstablity() const {
+	// Returns sum of squares of the number of the candidates for each cells
+	std::array<int, SIZE*SIZE*SIZE*SIZE> cells;
+	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
+		cells.at(i) = 0;
+	}
+	for (size_t i = 0; i < SIZE*SIZE; i++) {
+		for (size_t p = 0; p < SIZE*SIZE*SIZE*SIZE; p++) {
+			cells.at(p) += this->candidates.at(i)[p];
+		}
+	}
+	size_t square_sum = 0;
+	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
+		square_sum += cells.at(i)*cells.at(i);
+	}
+	return square_sum;
 }
 
 } // namespace sudoku

@@ -25,6 +25,7 @@ template<size_t SIZE>
 class board {
 private:
 	using bits = std::bitset<SIZE*SIZE*SIZE*SIZE>;
+	using cell = std::bitset<SIZE*SIZE>;
 	std::array<bits, SIZE*SIZE> candidates;
 	std::array<bits, SIZE*SIZE> stable;
 	static constexpr auto horizontal_mask_gen = []{
@@ -92,6 +93,7 @@ public:
 	std::vector<int> get_settable_num(const size_t pos);
 	size_t get_least_unstable() const;
 	bool find_error() const;
+	size_t get_unstablity() const;
 	void reset_candidates() {
 		for (auto&a: candidates) {
 			a = 0;
