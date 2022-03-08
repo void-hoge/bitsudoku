@@ -98,21 +98,10 @@ bool board<SIZE>::update() {
 	for (const auto& a: this->stable) {
 		stable_cells |= a;
 	}
-	// std::cout << "before update" << '\n';
-	// dump();
 	update_locked_candidate();
-	// std::cout << "locked candidates" << '\n';
-	// dump();
-	update_xwing_double();
-	// std::cout << "xwing" << '\n';
-	// dump();
-	// update_naked_pair();
+	// update_xwing_double();
 	update_naked_subset();
-	// std::cout << "naked pair" << '\n';
-	// dump();
 	update_hidden_subset();
-	// std::cout << "hidden subset" << '\n';
-	// dump();
 
 	for (size_t i = 0; i < this->stable.size(); i++) {
 		this->stable.at(i) = this->candidates.at(i);
@@ -147,7 +136,7 @@ bool board<SIZE>::update() {
 		}
 	}
 
-	auto after = count_candidates();
+	auto after = this->count_candidates();
 	return before - after;
 }
 
@@ -658,6 +647,7 @@ void board<SIZE>::show() const {
 			std::cout << std::endl;
 		}
 	}
+	std::cout << std::dec;
 }
 
 template<size_t SIZE>
@@ -679,6 +669,7 @@ void board<SIZE>::dump() const {
 		}
 		std::cout << '\n';
 	}
+	std::cout << std::dec;
 }
 
 template<size_t SIZE>
@@ -762,8 +753,8 @@ bool board<SIZE>::find_error() const {
 	return tmp.all();
 }
 
-template<size_t  SIZE>
-size_t board<SIZE>::get_unstablity() const {
+template<size_t SIZE>
+size_t board<SIZE>::get_instability() const {
 	// Returns sum of squares of the number of the candidates for each cells
 	std::array<int, SIZE*SIZE*SIZE*SIZE> cells;
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
@@ -779,6 +770,11 @@ size_t board<SIZE>::get_unstablity() const {
 		square_sum += cells.at(i)*cells.at(i);
 	}
 	return square_sum;
+}
+
+template<size_t SIZE>
+bool board<SIZE>::is_solved() const {
+	return this->get_instability() == SIZE*SIZE*SIZE*SIZE;
 }
 
 } // namespace sudoku

@@ -81,12 +81,6 @@ bool solver<SIZE>::dfs(board<SIZE> bd, const size_t pos, const int num, const bo
 		solved.push_back(bd);
 		return !full_search;
 	}
-	// size_t npos = 0;
-	// for (;npos < blank.size(); npos++) {
-	// 	if (blank[npos]) {
-	// 		break;
-	// 	}
-	// }
 	const size_t npos = bd.get_least_unstable();
 	// std::cerr << blank << '\n';
 	const auto settable = bd.get_settable_num(npos);
@@ -117,12 +111,6 @@ bool solver<SIZE>::is_multiple_solutions(board<SIZE> bd) {
 		is_found_solution = true;
 		return false; // single solution
 	}
-	// size_t pos = 0;
-	// for (;pos < blank.size(); pos++) {
-	// 	if (blank[pos]) {
-	// 		break;
-	// 	}
-	// }
 	const size_t pos = bd.get_least_unstable();
 	const auto settable = bd.get_settable_num(pos);
 	for (const auto& tmp: settable) {

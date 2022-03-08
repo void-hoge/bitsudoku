@@ -21,16 +21,21 @@ int main(int argc, char const *argv[]) {
 		sudoku::solver<3> slv;
 		start = std::chrono::system_clock::now();
 		slv.solve(bd, false);
+		// if (slv.is_multiple_solutions(bd)) {
+		// 	std::cout << "multi solution" << '\n';
+		// }else {
+		// 	std::cout << "single solution" << '\n';
+		// }
 		end = std::chrono::system_clock::now();
 		double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
 		for (const auto& a: slv.result()) {
 			a.show();
 		}
-		std::cout << "time: " << std::dec << elapsed << " microseconds" << '\n';
-		std::cout << "node: " << std::dec << slv.get_node_count() << '\n';
 		// std::cout << slv.result().size() << '\n';
 		// std::cout << slv.is_multiple_solutions(bd) << '\n';
 		// std::cout << slv.result().size() << '\n';
+		std::cout << "time: " << std::dec << elapsed << " microseconds" << '\n';
+		std::cout << "node: " << std::dec << slv.get_node_count() << '\n';
 	} else if (opt == 4) {
 		sudoku::board<4> bd;
 		bd.string_input(data);

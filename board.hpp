@@ -63,7 +63,6 @@ private:
 	const bits vertical_mask = vertical_mask_gen();
 	const bits block_mask = block_mask_gen();
 	int get(const size_t pos) const;
-	size_t count_candidates() const;
 	void update_xwing();
 	void update_xwing_double();
 	void update_locked_candidate();
@@ -77,6 +76,7 @@ private:
 	void update_naked_subset(const size_t limit = SIZE);
 public:
 	board();
+	size_t count_candidates() const;
 	void set(const size_t pos, const int num);
 	void erase_candidate(const size_t pos, const int num);
 	void erase_stable(const size_t pos);
@@ -93,7 +93,8 @@ public:
 	std::vector<int> get_settable_num(const size_t pos);
 	size_t get_least_unstable() const;
 	bool find_error() const;
-	size_t get_unstablity() const;
+	size_t get_instability() const;
+	bool is_solved() const;
 	void reset_candidates() {
 		for (auto&a: candidates) {
 			a = 0;
