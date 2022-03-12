@@ -99,7 +99,7 @@ bool board<SIZE>::update() {
 		stable_cells |= a;
 	}
 	update_locked_candidate();
-	// update_xwing_double();
+	update_xwing();
 	update_naked_subset();
 	update_hidden_subset();
 
@@ -141,8 +141,7 @@ bool board<SIZE>::update() {
 }
 
 template<size_t SIZE>
-void board<SIZE>::update_xwing_double() {
-	// X-wing
+void board<SIZE>::update_xwing() {
 	for (auto& cand: this->candidates) {
 		std::vector<size_t> h_xw;
 		std::vector<size_t> v_xw;
@@ -178,87 +177,6 @@ void board<SIZE>::update_xwing_double() {
 					auto mask = (bits)1<<(v_xw.at(j)) | (bits)1<<v_xw.at(k);
 					for (size_t l = 0; l < SIZE*SIZE; l++) {
 						if ((tmp&(bits)1<<(l*SIZE*SIZE)) != (bits)0) {
-							cand &= (mask << (l*SIZE*SIZE) | ~(this->horizontal_mask << (l*SIZE*SIZE)));
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-template<size_t SIZE>
-void board<SIZE>::update_xwing() {
-	for (auto&cand: this->candidates) {
-		for (size_t i = 2; i < SIZE; i++) {
-			std::vector<size_t> h_xw;
-			std::vector<size_t> v_xw;
-			for (size_t j = 0; j < SIZE*SIZE; j++) {
-				if ((cand&(this->horizontal_mask<<(j*SIZE*SIZE))).count() == i) {
-					h_xw.push_back(j);
-				}
-				if ((cand&(this->vertical_mask<<j)).count() == i) {
-					v_xw.push_back(j);
-				}
-			}
-			std::vector<bool> visited_h(h_xw.size(), false);
-			std::vector<bool> visited_v(v_xw.size(), false);
-			static auto check_visited = [](std::vector<bool>& v) {
-				for (auto a:v) {
-					if (!a) {
-						return true;
-					}
-				}
-				return false;
-			};
-			for (size_t j = 0; check_visited(visited_h);) {
-				while (visited_h.at(j) == true) {
-					j++;
-				}
-				visited_h.at(j) = true;
-				std::vector<size_t> stack;
-				stack.push_back(h_xw.at(j));
-				for (size_t k = j+1; k < h_xw.size(); k++) {
-					if ((((cand>>h_xw.at(j)*SIZE*SIZE)^(cand>>h_xw.at(k)*SIZE*SIZE))&this->horizontal_mask) == (bits)0) {
-						stack.push_back(h_xw.at(k));
-						visited_h.at(k) = true;
-					}
-				}
-				if (stack.size() == i) {
-					auto tmp = (cand>>stack.at(0)*SIZE*SIZE)&this->horizontal_mask;
-					bits mask = 0;
-					for (auto b: stack) {
-						mask |= (bits)1<<(b*SIZE*SIZE);
-					}
-					for (size_t l = 0; l < SIZE*SIZE; l++) {
-						if ((tmp&(bits)1<<l) != (bits)0) {
-							cand &= (mask << l | ~(this->vertical_mask << l));
-						}
-					}
-				}
-			}
-
-			for (size_t j = 0; check_visited(visited_v);) {
-				while (visited_v.at(j) == true) {
-					j++;
-				}
-				visited_v.at(j) = true;
-				std::vector<size_t> stack;
-				stack.push_back(v_xw.at(j));
-				for (size_t k = j+1; k < v_xw.size(); k++) {
-					if ((((cand>>v_xw.at(j))^(cand>>v_xw.at(k)))&this->vertical_mask).none()) {
-						stack.push_back(v_xw.at(k));
-						visited_v.at(k) = true;
-					}
-				}
-				if (stack.size() == i) {
-					auto tmp = (cand>>stack.at(0))&this->vertical_mask;
-					bits mask = 0;
-					for (auto b: stack) {
-						mask |= (bits)1<<b;
-					}
-					for (size_t l = 0; l < SIZE*SIZE; l++) {
-						if ((tmp&(bits)1<<(l*SIZE*SIZE)).any()) {
 							cand &= (mask << (l*SIZE*SIZE) | ~(this->horizontal_mask << (l*SIZE*SIZE)));
 						}
 					}
@@ -344,7 +262,7 @@ void board<SIZE>::update_naked_pair() {
 }
 
 template<size_t SIZE>
-bool board<SIZE>::recursive_find_horizontal_naked_subset(const std::array<cell, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+bool board<SIZE>::recursive_find_horizontal_naked_subset(const std::array<cbits, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
 	// a method for update_naked_subset()
 	if (target/(SIZE*SIZE) != previous/(SIZE*SIZE)) {
 		return false;
@@ -371,7 +289,7 @@ bool board<SIZE>::recursive_find_horizontal_naked_subset(const std::array<cell, 
 }
 
 template<size_t SIZE>
-bool board<SIZE>::recursive_find_vertical_naked_subset(const std::array<cell, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+bool board<SIZE>::recursive_find_vertical_naked_subset(const std::array<cbits, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
 	// a method for update_naked_subset()
 	if (target%(SIZE*SIZE) != previous%(SIZE*SIZE)) {
 		return false;
@@ -398,7 +316,7 @@ bool board<SIZE>::recursive_find_vertical_naked_subset(const std::array<cell, SI
 }
 
 template<size_t SIZE>
-bool board<SIZE>::recursive_find_block_naked_subset(const std::array<cell, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
+bool board<SIZE>::recursive_find_block_naked_subset(const std::array<cbits, SIZE*SIZE*SIZE*SIZE>& grid_candidates, const size_t target, const std::vector<int>& expand, const size_t previous, const size_t n) {
 	// a method for update_naked_subset()
 	const size_t x_t = target/(SIZE*SIZE);
 	const size_t y_t = target%(SIZE*SIZE);
@@ -453,7 +371,7 @@ bool board<SIZE>::recursive_find_block_naked_subset(const std::array<cell, SIZE*
 
 template<size_t SIZE>
 void board<SIZE>::update_naked_subset(const size_t limit) {
-	std::array<cell, SIZE*SIZE*SIZE*SIZE> grid_candidates;
+	std::array<cbits, SIZE*SIZE*SIZE*SIZE> grid_candidates;
 	std::array<uint8_t, SIZE*SIZE*SIZE*SIZE> grid_candidates_num;
 	for (size_t i = 0; i < SIZE*SIZE*SIZE*SIZE; i++) {
 		grid_candidates_num.at(i) = 0;
@@ -775,6 +693,20 @@ size_t board<SIZE>::get_instability() const {
 template<size_t SIZE>
 bool board<SIZE>::is_solved() const {
 	return this->get_instability() == SIZE*SIZE*SIZE*SIZE;
+}
+
+template<size_t SIZE>
+std::vector<cell> board<SIZE>::expand_candidates() const {
+	std::vector<cell> cells;
+	for (size_t i = 0; i < SIZE*SIZE; i++) {
+		auto bit = this->candidates.at(i) & ~this->stable.at(i);
+		for (size_t p = 0; p < SIZE*SIZE*SIZE*SIZE; p++) {
+			if (bit[p] == true) {
+				cells.push_back(cell(p, i));
+			}
+		}
+	}
+	return cells;
 }
 
 } // namespace sudoku

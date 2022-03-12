@@ -21,11 +21,28 @@ void dump_bits(const std::bitset<len>& bits, const int line_len) {
 	std::cout << std::endl;
 }
 
+class cell {
+private:
+	size_t _pos;
+	int _num;
+public:
+	cell(size_t p, int n) {
+		pos() = p;
+		num() = n;
+	}
+	size_t& pos() {
+		return _pos;
+	}
+	int& num() {
+		return _num;
+	}
+};
+
 template<size_t SIZE>
 class board {
 private:
 	using bits = std::bitset<SIZE*SIZE*SIZE*SIZE>;
-	using cell = std::bitset<SIZE*SIZE>;
+	using cbits = std::bitset<SIZE*SIZE>;
 	std::array<bits, SIZE*SIZE> candidates;
 	std::array<bits, SIZE*SIZE> stable;
 	static constexpr auto horizontal_mask_gen = []{
@@ -64,7 +81,6 @@ private:
 	const bits block_mask = block_mask_gen();
 	int get(const size_t pos) const;
 	void update_xwing();
-	void update_xwing_double();
 	void update_locked_candidate();
 	void update_naked_pair();
 	bool recursive_find_hidden_subset(const bits& mask, const bits& subset, const int n, const int p);
@@ -95,6 +111,7 @@ public:
 	bool find_error() const;
 	size_t get_instability() const;
 	bool is_solved() const;
+	std::vector<cell> expand_candidates() const;
 	void reset_candidates() {
 		for (auto&a: candidates) {
 			a = 0;
