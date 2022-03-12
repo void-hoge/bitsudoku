@@ -83,7 +83,7 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 		this->bd.show();
 		while (this->bd.update());
 	}
-	return this->bd.is_solved() == false;
+	return this->slv.is_multiple_solutions(this->bd);
 }
 
 } // namespace sudoku

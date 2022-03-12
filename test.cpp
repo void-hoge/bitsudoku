@@ -9,8 +9,8 @@ int main(int argc, char const *argv[]) {
 	gn.reconstruct();
 	gn.get_board().show();
 	sudoku::board<3> result = gn.get_board();
+	std::cout << result.string_output() << '\n';
 	while (result.update());
 	result.show();
-	result.string_output();
 	return 0;
 }
