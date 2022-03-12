@@ -80,9 +80,11 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 		// cellsにpush_back
 		cells.push_back(best_cand);
 		this->reconstruct();
+		std::cerr << i << " / " << this->cells.size()*2 << '\n';
 		this->bd.show();
 		while (this->bd.update());
 	}
+	std::cerr << "checking the solution..." << '\n';
 	return this->slv.is_multiple_solutions(this->bd);
 }
 

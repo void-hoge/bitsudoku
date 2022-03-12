@@ -41,7 +41,6 @@ int main(int argc, char const *argv[]) {
 		bd.string_input(data);
 		bd.show();
 		while (bd.update());
-		bd.show();
 		sudoku::solver<4> slv;
 		start = std::chrono::system_clock::now();
 		slv.solve(bd, false);
