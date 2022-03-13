@@ -5,20 +5,22 @@
 #include <array>
 #include <bitset>
 #include <iostream>
+#include <iomanip>
+#include <ostream>
 #include <string>
 #include <functional>
 
 namespace sudoku {
 
 template<size_t len>
-void dump_bits(const std::bitset<len>& bits, const int line_len) {
+void dump_bits(const std::bitset<len>& bits, const int line_len, std::ostream& os=std::cerr) {
 	for (size_t i = 0; i < bits.size(); i++) {
-		std::cout << bits[i];
+	 	os << bits[i];
 		if (!((i+1)%line_len)) {
-			std::cout << std::endl;
+			os << std::endl;
 		}
 	}
-	std::cout << std::endl;
+	os << std::endl;
 }
 
 class cell {
@@ -100,8 +102,8 @@ public:
 	void vector_input(const std::vector<int>& q);
 	void cin_input();
 	void string_input(const std::string& q);
-	void show() const;
-	void dump() const;
+	void show(std::ostream& os = std::cerr) const;
+	void dump(std::ostream& os = std::cerr) const;
 	std::string string_output() const;
 	bool update();
 	size_t stable_count() const;

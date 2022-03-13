@@ -19,7 +19,7 @@ solver<SIZE>::solver() {
 
 template<size_t SIZE>
 void solver<SIZE>::solve(board<SIZE> bd, const bool full_search) {
-	solved.clear();
+	solution().clear();
 	node_count = 1;
 	is_found_solution = false;
 	try {
@@ -37,7 +37,7 @@ void solver<SIZE>::solve(board<SIZE> bd, const bool full_search) {
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
 		is_found_solution = true;
-		solved.push_back(bd);
+		solution().push_back(bd);
 		return;
 	}
 	// size_t pos = 0;
@@ -78,7 +78,7 @@ bool solver<SIZE>::dfs(board<SIZE> bd, const size_t pos, const int num, const bo
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
 		is_found_solution = true;
-		solved.push_back(bd);
+		solution().push_back(bd);
 		return !full_search;
 	}
 	const size_t npos = bd.get_least_unstable();
@@ -94,7 +94,7 @@ bool solver<SIZE>::dfs(board<SIZE> bd, const size_t pos, const int num, const bo
 
 template<size_t SIZE>
 bool solver<SIZE>::is_multiple_solutions(board<SIZE> bd) {
-	solved.clear();
+	solution().clear();
 	node_count = 1;
 	is_found_solution = false;
 	try {
@@ -107,7 +107,7 @@ bool solver<SIZE>::is_multiple_solutions(board<SIZE> bd) {
 	}
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
-		solved.push_back(bd);
+		solution().push_back(bd);
 		is_found_solution = true;
 		return false; // single solution
 	}
@@ -142,7 +142,7 @@ bool solver<SIZE>::dfs_check_multi_sol(board<SIZE> bd, const size_t pos, const i
 	}
 	const auto blank = bd.get_blank();
 	if (blank == 0) {
-		solved.push_back(bd);
+		solution().push_back(bd);
 		if (is_found_solution) {
 			return true;
 		} else {

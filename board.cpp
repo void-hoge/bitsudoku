@@ -2,12 +2,6 @@
 #define BOARD_CPP_INCLUDED
 
 #include "board.hpp"
-#include <vector>
-#include <array>
-#include <bitset>
-#include <iostream>
-#include <sstream>
-#include <string>
 
 namespace sudoku {
 
@@ -531,63 +525,63 @@ void board<SIZE>::string_input(const std::string& q) {
 }
 
 template<size_t SIZE>
-void board<SIZE>::show() const {
-	std::cout << "+";
+void board<SIZE>::show(std::ostream& os) const {
+	os << "+";
 	for (size_t i = 0; i < SIZE; i++) {
 		for (size_t j = 0; j < SIZE; j++) {
-			std::cout << "---";
+			os << "---";
 		}
-		std::cout << "+";
+		os << "+";
 	}
-	std::cout << std::endl;
+	os << std::endl;
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
-		std::cout << "|";
+		os << "|";
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
 			int num = this->get(i*SIZE*SIZE+j);
 			if (num != -1) {
-				std::cout << " " << std::hex << num << " ";
+				os << " " << std::hex << num << " ";
 			} else {
-				std::cout << "   ";
+				os << "   ";
 			}
 			if (!((j + 1) % SIZE)) {
-				std::cout << "|";
+				os << "|";
 			}
 		}
-		std::cout << std::endl;
+		os << std::endl;
 		if (!((i+1)%SIZE)) {
-			std::cout << "+";
+			os << "+";
 			for (size_t j = 0; j < SIZE; j++) {
 				for (size_t k = 0; k < SIZE; k++) {
-					std::cout << "---";
+					os << "---";
 				}
-				std::cout << "+";
+				os << "+";
 			}
-			std::cout << std::endl;
+			os << std::endl;
 		}
 	}
-	std::cout << std::dec;
+	os << std::dec;
 }
 
 template<size_t SIZE>
-void board<SIZE>::dump() const {
-	std::cout << "candidates" << std::endl;
+void board<SIZE>::dump(std::ostream& os) const {
+	os << "candidates" << std::endl;
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
-		std::cout << std::dec << i;
+		os << std::dec << i;
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
-			std::cout << ' ';
+			os << ' ';
 		}
 	}
-	std::cout << '\n';
+	os << '\n';
 	for (size_t i = 0; i < SIZE*SIZE; i++) {
 		for (size_t j = 0; j < SIZE*SIZE; j++) {
 			for (size_t k = 0; k < SIZE*SIZE; k++) {
-				std::cout << this->candidates.at(j)[i*SIZE*SIZE+k];
+				os << this->candidates.at(j)[i*SIZE*SIZE+k];
 			}
-			std::cout << ' ';
+			os << ' ';
 		}
-		std::cout << '\n';
+		os << '\n';
 	}
-	std::cout << std::dec;
+	os << std::dec;
 }
 
 template<size_t SIZE>

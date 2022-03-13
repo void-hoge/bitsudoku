@@ -16,15 +16,15 @@ private:
 	bool dfs(board<SIZE> bd, const size_t pos, const int num, const bool full_search);
 	bool dfs_check_multi_sol(board<SIZE> bd, const size_t pos, const int num);
 	size_t node_count;
-	std::vector<board<SIZE>> solved;
+	std::vector<board<SIZE>> _solution;
 	bool is_found_solution;
 public:
 	solver();
 	void solve(board<SIZE> bd, const bool full_search);
 	bool is_multiple_solutions(board<SIZE> bd);
 	size_t get_node_count() const;
-	std::vector<board<SIZE>>& result() {
-		return std::ref(solved);
+	std::vector<board<SIZE>>& solution() {
+		return std::ref(_solution);
 	}
 };
 

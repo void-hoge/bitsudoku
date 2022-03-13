@@ -3,27 +3,38 @@
 #include <random>
 
 int main(int argc, char const *argv[]) {
-	if (argc != 3) {
+	if (argc != 3 && argc != 4) {
 		throw std::invalid_argument("too much/few arguments.");
 	}
-	std::cout << "sudoku generator" << '\n';
 	const int size = std::stoi(argv[1]);
-	const int clues_count = std::stoi(argv[2]);
-	std::random_device seed_gen;
+	const int clue_count = std::stoi(argv[2]);
+	unsigned seed = 0;
+	if (argc == 4) {
+		seed = std::stoul(argv[3]);
+	}else {
+		std::random_device seed_gen;
+		seed = seed_gen();
+	}
+	std::cerr << "seed: ";
+	std::cout << seed << '\n';
 	if (size == 3) {
-		sudoku::generator<3> gen(seed_gen());
-		sudoku::board<3> bd;
-		gen.generate(bd, clues_count);
-		bd.show();
-		std::cout << bd.string_output() << '\n';
-		std::cerr << "clues count: " << (~bd.get_blank()).count() << '\n';
+		sudoku::generator<3> gen(seed);
+		while (gen.generate(clue_count));
+		auto solution = gen.get_board();
+		gen.reconstruct();
+		std::cout << gen.get_board().string_output() << '\n';
+		gen.get_board().show(std::cout);
+		solution.show(std::cout);
 	}else if (size == 4) {
-		sudoku::generator<4> gen(seed_gen());
-		sudoku::board<4> bd;
-		gen.generate(bd, clues_count);
-		bd.show();
-		std::cout << bd.string_output() << '\n';
-		std::cerr << "clues count: " << (~bd.get_blank()).count() << '\n';
+		sudoku::generator<4> gen(seed);
+		while (gen.generate(clue_count));
+		auto solution = gen.get_board();
+		gen.reconstruct();
+		std::cout << gen.get_board().string_output() << '\n';
+		gen.get_board().show(std::cout);
+		solution.show(std::cout);
+	}else {
+		std::cerr << "Invalid size." << '\n';
 	}
 	return 0;
 }

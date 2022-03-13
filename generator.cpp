@@ -53,12 +53,10 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 		}
 	}
 	for (size_t i = 0; i < this->cells.size()*2; i++) {
-		// 1つのヒントを選ぶ(cellsの最初の要素を消す)
 		auto erased = this->cells.front();
 		auto best_cand = erased;
 		auto min_instability = this->bd.get_instability();
 		this->cells.pop_front();
-		// 全部試して、最小のものを選ぶ
 		this->reconstruct();
 		while (this->bd.update());
 		auto candidates = this->bd.expand_candidates();
@@ -77,14 +75,13 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 				best_cand = cand;
 			}
 		}
-		// cellsにpush_back
 		cells.push_back(best_cand);
 		this->reconstruct();
-		std::cerr << i << " / " << this->cells.size()*2 << '\n';
-		this->bd.show();
+		// std::cerr << i << " / " << this->cells.size()*2 << '\n';
+		// this->bd.show();
 		while (this->bd.update());
 	}
-	std::cerr << "checking the solution..." << '\n';
+	// std::cerr << "checking the solution..." << '\n';
 	return this->slv.is_multiple_solutions(this->bd);
 }
 
