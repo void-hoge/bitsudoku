@@ -19,7 +19,11 @@ int main(int argc, char const *argv[]) {
 	std::cout << seed << '\n';
 	if (size == 3) {
 		sudoku::generator<3> gen(seed);
-		while (gen.generate(clue_count));
+		std::cerr << "attempting";
+		while (gen.generate(clue_count)) {
+			std::cerr << ".";
+		}
+		std::cerr << '\n';
 		auto solution = gen.get_board();
 		gen.reconstruct();
 		std::cout << gen.get_board().string_output() << '\n';
@@ -27,7 +31,11 @@ int main(int argc, char const *argv[]) {
 		solution.show(std::cout);
 	}else if (size == 4) {
 		sudoku::generator<4> gen(seed);
-		while (gen.generate(clue_count));
+		std::cerr << "attempting";
+		while (gen.generate(clue_count)) {
+			std::cerr << ".";
+		}
+		std::cerr << '\n';
 		auto solution = gen.get_board();
 		gen.reconstruct();
 		std::cout << gen.get_board().string_output() << '\n';
