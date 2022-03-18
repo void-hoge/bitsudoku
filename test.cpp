@@ -4,7 +4,7 @@
 #include "solver.hpp"
 
 int main(int argc, char const *argv[]) {
-	sudoku::generator<3> gn(0);
+	sudoku::generator<3> gn(624113364);
 	while (gn.generate(17));
 	gn.reconstruct();
 	sudoku::board<3> result = gn.get_board();

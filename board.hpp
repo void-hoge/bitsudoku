@@ -136,6 +136,19 @@ public:
 		this->stable = bd.stable;
 		return std::ref(*this);
 	}
+	board<SIZE>& operator==(const board<SIZE>& bd) {
+		if (bd.size() != SIZE) {
+			throw std::logic_error("different sizes");
+		}
+		return this->candidates == bd.candidates && this->stable == bd.stable;
+	}
+	bits allor() const {
+		auto result = this->candidates.at(0);
+		for (size_t i = 1; i < SIZE*SIZE; i++) {
+			result |= this->candidates.at(i);
+		}
+		return result;
+	}
 };
 
 } // namespace sudoku

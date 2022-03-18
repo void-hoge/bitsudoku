@@ -35,3 +35,15 @@ set_random() 適当に1マス埋める
 	空きマスを求める
 	ランダムに空きマスを選ぶ
 	ランダムに入れられる数字を入れる
+
+試している時
+	pop
+	reconstruct
+	update
+	set
+	update
+
+確定するとき
+	push
+	reconstruct
+	update

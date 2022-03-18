@@ -129,6 +129,9 @@ bool board<SIZE>::update() {
 			this->set(i, get(i));
 		}
 	}
+	if (!this->find_error()) {
+		throw std::logic_error("This sudoku can't be solved. (too few candidates at board::update())");
+	}
 
 	auto after = this->count_candidates();
 	return before - after;
