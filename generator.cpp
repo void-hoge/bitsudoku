@@ -32,15 +32,6 @@ bool generator<SIZE>::set_random() {
 	}
 	size_t pos = expand_blank.at(this->mt()%expand_blank.size());
 	auto settable = bd.get_settable_num(pos);
-		// std::cout << this->bd.allor() << '\n';
-		// this->bd.dump();
-		// std::cout << this->cells.size() << " ";
-		// for (auto a: this->cells) {
-		// 	std::cout << "(" << a.pos() << "," << a.num() << ") ";
-		// }
-		// std::cout << '\n';
-		// std::cout << pos << " " << this->bd.get(pos) << '\n';
-		// std::cout << settable.size() << '\n';
 	auto num = settable.at(this->mt()%settable.size());
 	this->bd.set(pos, num);
 	try {
@@ -97,6 +88,9 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 		r = this->slv.is_multiple_solutions(this->bd);
 	}catch (std::exception e) {
 		r = true;
+	}
+	if (r == false) {
+		std::cerr << "\nnode: " << this->slv.get_node_count();
 	}
 	return r;
 }
