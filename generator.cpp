@@ -45,7 +45,6 @@ bool generator<SIZE>::set_random() {
 
 template<size_t SIZE>
 bool generator<SIZE>::generate(const size_t num_of_clues) {
-	// std::cerr << "generate front" << '\n';
 	this->cells.clear();
 	this->reconstruct();
 	for (size_t i = 0; i < num_of_clues; i++) {
@@ -53,10 +52,8 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 			i--;
 		}
 	}
-	// std::cout << this->bd.string_output() << std::endl;
 	for (size_t i = 0; i < this->cells.size()*2; i++) {
 		auto erased = this->cells.front();
-		// std::cout << "cell erased " << erased.pos() << " " << erased.num() << '\n';
 		auto best_cand = erased;
 		auto min_instability = this->bd.get_instability();
 		this->cells.pop_front();
@@ -64,7 +61,6 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 		while (this->bd.update());
 		auto candidates = this->bd.expand_candidates();
 		auto tmp = this->bd;
-		// std::cout << "candidates count " << candidates.size() << '\n';
 		auto best_status = tmp;
 		for (auto& cand: candidates) {
 			this->bd = tmp;
@@ -72,7 +68,6 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 			try {
 				while (bd.update());
 			}catch (std::exception e) {
-				// std::cout << "in the loop " << cand.pos() << " " << cand.num() << '\n';
 				continue;
 			}
 			auto current_instability = this->bd.get_instability();
@@ -82,29 +77,17 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 				best_status = this->bd;
 			}
 		}
-		// std::cout << "end of loop" << '\n';
-		// this->bd = tmp;
-		// this->bd.set(best_cand.pos(), best_cand.num());
 		cells.push_back(best_cand);
 		this->reconstruct();
-		// std::cerr << i << " / " << this->cells.size()*2 << '\n';
-		// this->bd.show();
-		// this->bd.dump();
-		// try{
 		while (this->bd.update());
-		// }catch(std::exception e) {
-			// std::cout << "aborting " << best_cand.pos() << " " << best_cand.num() << '\n';
-			// std::cout << this->bd.string_output() << '\n';
-			// this->bd.dump();
-			// std::cout << this->bd.allor() << '\n';
-			// best_status.dump();
-			// std::cout << best_status.allor() << '\n';
-		// 	std::abort();
-		// }
 	}
-	// std::cerr << "checking the solution..." << '\n';
-	// std::cerr << "generate back" << '\n';
-	return this->slv.is_multiple_solutions(this->bd);
+	bool r;
+	try {
+		r = this->slv.is_multiple_solutions(this->bd);
+	}catch (std::exception e) {
+		r = false;
+	}
+	return r;
 }
 
 } // namespace sudoku
