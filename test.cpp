@@ -12,10 +12,10 @@ int main(int argc, char const *argv[]) {
 	result.show(std::cout);
 	sudoku::solver<3> slv;
 	if (slv.is_multiple_solutions(result)) {
-		std::cerr << "single solution" << '\n';
+		std::cerr << "multiple solution" << '\n';
 		slv.solution().back().show(std::cout);
 	} else {
-		std::cerr << "multiple solutions" << '\n';
+		std::cerr << "single solutions" << '\n';
 		slv.solution().back().show(std::cout);
 	}
 	return 0;

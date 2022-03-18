@@ -85,7 +85,7 @@ bool generator<SIZE>::generate(const size_t num_of_clues) {
 	try {
 		r = this->slv.is_multiple_solutions(this->bd);
 	}catch (std::exception e) {
-		r = false;
+		r = true;
 	}
 	return r;
 }

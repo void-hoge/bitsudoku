@@ -19,12 +19,12 @@ int main(int argc, char const *argv[]) {
 		bd.show(std::cout);
 		sudoku::solver<3> slv;
 		start = std::chrono::system_clock::now();
-		slv.solve(bd, false);
-		// if (slv.is_multiple_solutions(bd)) {
-		// 	std::cout << "multi solution" << '\n';
-		// }else {
-		// 	std::cout << "single solution" << '\n';
-		// }
+		// slv.solve(bd, false);
+		if (slv.is_multiple_solutions(bd)) {
+			std::cerr << "multi solution" << '\n';
+		}else {
+			std::cerr << "single solution" << '\n';
+		}
 		end = std::chrono::system_clock::now();
 		double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
 		for (const auto& a: slv.solution()) {
@@ -42,7 +42,12 @@ int main(int argc, char const *argv[]) {
 		while (bd.update());
 		sudoku::solver<4> slv;
 		start = std::chrono::system_clock::now();
-		slv.solve(bd, false);
+		// slv.solve(bd, false);
+		if (slv.is_multiple_solutions(bd)) {
+			std::cerr << "multi solution" << '\n';
+		}else {
+			std::cerr << "single solution" << '\n';
+		}
 		end = std::chrono::system_clock::now();
 		double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
 		for (const auto& a: slv.solution()) {
