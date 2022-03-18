@@ -81,7 +81,6 @@ private:
 	const bits horizontal_mask = horizontal_mask_gen();
 	const bits vertical_mask = vertical_mask_gen();
 	const bits block_mask = block_mask_gen();
-	int get(const size_t pos) const;
 	void update_xwing();
 	void update_locked_candidate();
 	void update_naked_pair();
@@ -94,6 +93,7 @@ private:
 	void update_naked_subset(const size_t limit = SIZE);
 public:
 	board();
+	int get(const size_t pos) const;
 	size_t count_candidates() const;
 	void set(const size_t pos, const int num);
 	void erase_candidate(const size_t pos, const int num);

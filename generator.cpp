@@ -32,11 +32,22 @@ bool generator<SIZE>::set_random() {
 	}
 	size_t pos = expand_blank.at(this->mt()%expand_blank.size());
 	auto settable = bd.get_settable_num(pos);
+		// std::cout << this->bd.allor() << '\n';
+		// this->bd.dump();
+		// std::cout << this->cells.size() << " ";
+		// for (auto a: this->cells) {
+		// 	std::cout << "(" << a.pos() << "," << a.num() << ") ";
+		// }
+		// std::cout << '\n';
+		// std::cout << pos << " " << this->bd.get(pos) << '\n';
+		// std::cout << settable.size() << '\n';
 	auto num = settable.at(this->mt()%settable.size());
 	this->bd.set(pos, num);
 	try {
 		while (this->bd.update());
 	}catch (std::exception e) {
+		this->reconstruct();
+		while (this->bd.update());
 		return false;
 	}
 	this->cells.push_back(cell(pos, num));
