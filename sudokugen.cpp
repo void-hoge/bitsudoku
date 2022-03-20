@@ -16,7 +16,7 @@ int main(int argc, char const *argv[]) {
 		seed = seed_gen();
 	}
 	std::cerr << "seed: ";
-	std::cout << seed << '\n';
+	std::cerr << seed << '\n';
 	if (size == 3) {
 		sudoku::generator<3> gen(seed);
 		std::cerr << "attempting";
@@ -27,8 +27,8 @@ int main(int argc, char const *argv[]) {
 		auto solution = gen.get_board();
 		gen.reconstruct();
 		std::cout << gen.get_board().string_output() << '\n';
-		gen.get_board().show(std::cout);
-		solution.show(std::cout);
+		gen.get_board().show(std::cerr);
+		solution.show(std::cerr);
 	}else if (size == 4) {
 		sudoku::generator<4> gen(seed);
 		std::cerr << "attempting";
@@ -39,8 +39,8 @@ int main(int argc, char const *argv[]) {
 		auto solution = gen.get_board();
 		gen.reconstruct();
 		std::cout << gen.get_board().string_output() << '\n';
-		gen.get_board().show(std::cout);
-		solution.show(std::cout);
+		gen.get_board().show(std::cerr);
+		solution.show(std::cerr);
 	}else {
 		std::cerr << "Invalid size." << '\n';
 	}
